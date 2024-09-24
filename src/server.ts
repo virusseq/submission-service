@@ -6,10 +6,10 @@ import helmet from 'helmet';
 import { pino } from 'pino';
 
 import { env } from '@/common/envConfig.js';
-// import { lyricProvider } from '@/core/provider.js';
+import { lyricProvider } from '@/core/provider.js';
 import { requestLogger } from '@/middleware/requestLogger.js';
 import { healthCheckRouter } from '@/routers/healthCheck.js';
-// import { openAPIRouter } from '@/routes/openApi.js';
+import { openAPIRouter } from '@/routers/openApi.js';
 
 const logger = pino({ name: 'server start' });
 const app = express();
@@ -39,12 +39,13 @@ app.use(requestLogger);
 app.use('/health', healthCheckRouter);
 
 // Lyric routes
-// app.use('/dictionary', lyricProvider.routers.dictionary);
-// app.use('/submission', lyricProvider.routers.submission);
-// app.use('/data', lyricProvider.routers.submittedData);
+app.use('/category', lyricProvider.routers.category);
+app.use('/data', lyricProvider.routers.submittedData);
+app.use('/dictionary', lyricProvider.routers.dictionary);
+app.use('/submission', lyricProvider.routers.submission);
 
 // Swagger route
-// app.use('/api-docs', openAPIRouter);
+app.use('/api-docs', openAPIRouter);
 
 // Error handler
 // app.use(errorHandler);

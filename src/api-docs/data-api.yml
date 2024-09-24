@@ -1,0 +1,297 @@
+/data/category/{categoryId}:
+  get:
+    summary: Retrieve Submitted Data for a specific Category
+    tags:
+      - Data
+    parameters:
+      - name: categoryId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: ID of the category
+      - name: entityName
+        description: Array of strings to filter by entity names
+        in: query
+        required: false
+        schema:
+          collectionFormat: multi
+          type: array
+          items:
+            type: string
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+        description: Optional query parameter to specify the page number of the results. Default value is 1
+      - name: pageSize
+        in: query
+        required: false
+        schema:
+          type: integer
+        description: Optional query parameter to specify the number of results per page. Default value is 20
+    responses:
+      200:
+        description: Submitted Data
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetSubmittedDataResult'
+      400:
+        $ref: '#/components/responses/BadRequest'
+      401:
+        $ref: '#/components/responses/UnauthorizedError'
+      404:
+        $ref: '#/components/responses/NotFound'
+      500:
+        $ref: '#/components/responses/ServerError'
+      503:
+        $ref: '#/components/responses/ServiceUnavailableError'
+
+/data/category/{categoryId}/organization/{organization}:
+  get:
+    summary: Retrieve Submitted Data for a specific Category and Organization
+    tags:
+      - Data
+    parameters:
+      - name: categoryId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: ID of the category
+      - name: organization
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Organization name
+      - name: entityName
+        description: Array of strings to filter by entity names
+        in: query
+        required: false
+        schema:
+          collectionFormat: multi
+          type: array
+          items:
+            type: string
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+        description: Optional query parameter to specify the page number of the results. Default value is 1
+      - name: pageSize
+        in: query
+        required: false
+        schema:
+          type: integer
+        description: Optional query parameter to specify the number of results per page. Default value is 20
+    responses:
+      200:
+        description: Submitted Data
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetSubmittedDataResult'
+      400:
+        $ref: '#/components/responses/BadRequest'
+      401:
+        $ref: '#/components/responses/UnauthorizedError'
+      404:
+        $ref: '#/components/responses/NotFound'
+      500:
+        $ref: '#/components/responses/ServerError'
+      503:
+        $ref: '#/components/responses/ServiceUnavailableError'
+
+/data/category/{categoryId}/organization/{organization}/query:
+  post:
+    summary: Retrieve Submitted Data filtered by search parameters provided in the request body
+    tags:
+      - Data
+    parameters:
+      - name: categoryId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: ID of the category
+      - name: organization
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Organization name
+      - name: entityName
+        description: Array of strings to filter by entity names
+        in: query
+        required: false
+        schema:
+          collectionFormat: multi
+          type: array
+          items:
+            type: string
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+        description: Optional query parameter to specify the page number of the results. Default value is 1
+      - name: pageSize
+        in: query
+        required: false
+        schema:
+          type: integer
+        description: Optional query parameter to specify the number of results per page. Default value is 20
+    requestBody:
+      description: Custom filter SQON Notation to provide a flexible system for combining filters in a JSON object format. Find more documentation on https://github.com/overture-stack/sqon-builder
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            description: A SQON object
+          examples:
+            in:
+              summary: In - Field must match the provided value or be included in the array of values.
+              value:
+                op: 'and'
+                content:
+                  - op: 'in'
+                    content:
+                      fieldName: 'name'
+                      value: ['Bob']
+            not:
+              summary: Not in - Field must not match the provided value or not to be included in the array of values.
+              value:
+                op: 'not'
+                content:
+                  - op: 'in'
+                    content:
+                      fieldName: 'name'
+                      value: ['Tom']
+            gt:
+              summary: Greater Than - field value must be greater than the given number
+              value:
+                op: 'and'
+                content:
+                  - op: 'gt'
+                    content:
+                      fieldName: 'years'
+                      value: 21
+            lt:
+              summary: Lesser Than - field value must be lesser than the given number
+              value:
+                op: 'and'
+                content:
+                  - op: 'lt'
+                    content:
+                      fieldName: 'years'
+                      value: 100
+            combination:
+              summary: Every SQON can be combined with other SQONs through the boolean combinations 'and', 'or', and 'not'
+              value:
+                op: 'or'
+                content:
+                  - op: 'in'
+                    content:
+                      fieldName: 'name'
+                      value: ['Bob']
+                  - op: 'gt'
+                    content:
+                      fieldName: 'score'
+                      value: 100
+
+    responses:
+      200:
+        description: Submitted Data
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetSubmittedDataResult'
+      400:
+        $ref: '#/components/responses/BadRequest'
+      401:
+        $ref: '#/components/responses/UnauthorizedError'
+      404:
+        $ref: '#/components/responses/NotFound'
+      500:
+        $ref: '#/components/responses/ServerError'
+      503:
+        $ref: '#/components/responses/ServiceUnavailableError'
+
+/data/{systemId}:
+  delete:
+    summary: Delete Submitted Data by System ID. Returns an Active Submission with the records to be deleted
+    tags:
+      - Admin
+    parameters:
+      - name: systemId
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      200:
+        description: Returns an Active Submission with the records to be deleted
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteDataActiveSubmission'
+      400:
+        $ref: '#/components/responses/BadRequest'
+      401:
+        $ref: '#/components/responses/UnauthorizedError'
+      404:
+        $ref: '#/components/responses/NotFound'
+      409:
+        $ref: '#/components/responses/StatusConflict'
+      500:
+        $ref: '#/components/responses/ServerError'
+      503:
+        $ref: '#/components/responses/ServiceUnavailableError'
+
+/data/category/{categoryId}/edit:
+  post:
+    summary: Edit Submitted Data. Returns an Active Submission with the records to be updated
+    tags:
+      - Admin
+    consumes:
+      - multipart/form-data
+    parameters:
+      - name: categoryId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: ID of the category
+    requestBody:
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              files:
+                type: array
+                items:
+                  type: string
+                  format: binary
+              organization:
+                type: string
+    responses:
+      200:
+        description: Edit Data request accepted
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSubmissionResult'
+      400:
+        $ref: '#/components/responses/BadRequest'
+      401:
+        $ref: '#/components/responses/UnauthorizedError'
+      500:
+        $ref: '#/components/responses/ServerError'
+      503:
+        $ref: '#/components/responses/ServiceUnavailableError'
