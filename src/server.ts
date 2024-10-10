@@ -1,4 +1,4 @@
-// import { errorHandler } from '@overture-stack/lyric';
+import { errorHandler } from '@overture-stack/lyric';
 
 import cors from 'cors';
 import express from 'express';
@@ -49,6 +49,6 @@ app.use('/submission', lyricProvider.routers.submission);
 app.use('/api-docs', openAPIRouter);
 
 // Error handler
-// app.use(errorHandler);
+app.use(errorHandler);
 
 export { app, logger };
