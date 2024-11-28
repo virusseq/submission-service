@@ -11,9 +11,11 @@
     "\n=============  Dev environment  =============": "",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
-    "start:dev": "tsx watch --clear-screen=false src/index.ts | pino-pretty",
+    "migrate:db:dev": "tsx src/scripts/migration.ts",
+    "start:dev": "pnpm migrate:db:dev && tsx watch --clear-screen=false src/index.ts | pino-pretty",
     "\n========  Prod environment (compiled) =======": "",
-    "start:prod": "NODE_ENV=production node --import=./register.js src/index.js"
+    "migrate:db:prod": "node --import=./register.js src/scripts/migration.js",
+    "start:prod": "pnpm migrate:db:prod && NODE_ENV=production node --import=./register.js src/index.js"
   },
   "private": true,
   "keywords": [],
@@ -21,7 +23,7 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "@overture-stack/lyric": "^0.4.0",
+    "@overture-stack/lyric": "^0.5.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "esm-module-alias": "^2.2.1",
