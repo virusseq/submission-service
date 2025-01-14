@@ -1,6 +1,7 @@
 import { AppConfig, provider } from '@overture-stack/lyric';
 
 import { env } from '@/common/envConfig.js';
+import { verifyToken } from '@/middleware/veverifyEgoJwt.js';
 
 const appConfig: AppConfig = {
 	db: {
@@ -25,6 +26,7 @@ const appConfig: AppConfig = {
 	schemaService: {
 		url: env.LECTERN_URL,
 	},
+	authMiddleware: verifyToken,
 };
 
 export const lyricProvider = provider(appConfig);

@@ -1,12 +1,28 @@
-import { LoggerOptions, pino } from 'pino';
+import { Logger, LoggerOptions, pino } from 'pino';
 
-import { env } from './envConfig.js';
+// Singleton logger instance
+let loggerInstance: Logger;
 
-const pinoConfig = {
-	level: env.LOG_LEVEL,
-	transport: {
-		target: 'pino-pretty',
+const pinoConfig: LoggerOptions = {
+	level: process.env.LOG_LEVEL || 'info',
+	formatters: {
+		level: (label) => {
+			return { level: label.toUpperCase() };
+		},
 	},
-} as LoggerOptions;
+	timestamp: pino.stdTimeFunctions.isoTime,
+};
 
-export const logger = pino(pinoConfig);
+const getLogger = (): Logger => {
+	if (!loggerInstance) {
+		loggerInstance = pino(pinoConfig);
+	}
+	return loggerInstance;
+};
+
+/**
+ * The singleton logger instance that is initialized once and can be used
+ * throughout the application.
+ */
+const logger = getLogger();
+export default logger;
