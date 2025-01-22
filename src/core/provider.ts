@@ -26,7 +26,10 @@ const appConfig: AppConfig = {
 	schemaService: {
 		url: env.LECTERN_URL,
 	},
-	authMiddleware: verifyToken,
+	auth: {
+		enabled: env.AUTH_ENABLED,
+		customAuthHandler: verifyToken,
+	},
 };
 
 export const lyricProvider = provider(appConfig);

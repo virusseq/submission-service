@@ -11,11 +11,7 @@ dotenv.config();
 const envSchema = z
 	.object({
 		ALLOWED_ORIGINS: z.string().optional(),
-		AUTH_ENABLED: z
-			.string()
-			.toLowerCase()
-			.refine((value) => value === 'true' || value === 'false')
-			.default('false'),
+		AUTH_ENABLED: z.coerce.boolean().default(false),
 		AUTH_PUBLIC_KEY: z.string().default(''),
 		DB_HOST: z.string(),
 		DB_NAME: z.string(),
@@ -29,7 +25,7 @@ const envSchema = z
 		SERVER_UPLOAD_LIMIT: z.string().default('10mb'),
 	})
 	.superRefine((data, ctx) => {
-		if (data.AUTH_ENABLED === 'true' && data.AUTH_PUBLIC_KEY.trim() === '') {
+		if (data.AUTH_ENABLED === true && data.AUTH_PUBLIC_KEY.trim() === '') {
 			ctx.addIssue({
 				code: z.ZodIssueCode.custom,
 				path: ['AUTH_PUBLIC_KEY'],

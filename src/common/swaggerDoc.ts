@@ -10,9 +10,9 @@ const swaggerDefinition: swaggerJSDoc.OAS3Definition = {
 	},
 	security: [
 		{
-			bearerAuth: []
-		}
-	]
+			bearerAuth: [],
+		},
+	],
 };
 
 const options: swaggerJSDoc.OAS3Options = {
