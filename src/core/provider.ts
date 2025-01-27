@@ -1,6 +1,7 @@
 import { AppConfig, provider } from '@overture-stack/lyric';
 
 import { env } from '@/common/envConfig.js';
+import { onFinishCommitCallback } from '@/indexer/onFinishCommit.js';
 
 const appConfig: AppConfig = {
 	db: {
@@ -25,6 +26,7 @@ const appConfig: AppConfig = {
 	schemaService: {
 		url: env.LECTERN_URL,
 	},
+	onFinishCommit: onFinishCommitCallback
 };
 
 export const lyricProvider = provider(appConfig);
