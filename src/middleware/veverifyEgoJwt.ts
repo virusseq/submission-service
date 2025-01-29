@@ -67,7 +67,8 @@ export const verifyToken = (req: Request): UserSessionResult => {
 	const token = extractTokenFromHeader(req);
 	if (!token) {
 		return {
-			authStatus: 'no-auth',
+			errorCode: 401,
+			errorMessage: 'Unauthorized: No token provided',
 		};
 	}
 
@@ -76,12 +77,12 @@ export const verifyToken = (req: Request): UserSessionResult => {
 		const decodedToken = verifyJwtToken(token);
 		if (!decodedToken || !isValidTokenPayload(decodedToken)) {
 			return {
-				authStatus: 'invalid-auth',
+				errorCode: 403,
+				errorMessage: 'Forbidden: Invalid token',
 			};
 		}
 
 		return {
-			authStatus: 'authenticated',
 			user: {
 				username: decodedToken?.context?.user?.email || '',
 			},
@@ -89,7 +90,8 @@ export const verifyToken = (req: Request): UserSessionResult => {
 	} catch (err) {
 		logger.error(`Error verifying token ${err}`);
 		return {
-			authStatus: 'invalid-auth',
+			errorCode: 403,
+			errorMessage: 'Forbidden: Invalid token',
 		};
 	}
 };
