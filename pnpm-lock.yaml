@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@overture-stack/lyric':
-    specifier: ^0.6.0
-    version: 0.6.0
+    specifier: ^0.7.0
+    version: 0.7.0
   cors:
     specifier: ^2.8.5
     version: 2.8.5
@@ -503,8 +503,8 @@ packages:
       zod: 3.23.8
     dev: false
 
-  /@overture-stack/lyric-data-model@0.6.0:
-    resolution: {integrity: sha512-mVY/KpFhOrHJOCDFOlzHZ3dd+pLSpo+Oz+970zM7awcVoRXNsd5OMYrTNMiZ/wqJX8hRQXETCRXCtHj/qYQwIw==}
+  /@overture-stack/lyric-data-model@0.7.0:
+    resolution: {integrity: sha512-DveHpaT9yKTMFgjrRT2ziigRkVNKIAswU5NXwWdyTYnr/fwJTua6QiNSeHtNPMDja5r7T7cA8MgEKG7Q8U2+0A==}
     dependencies:
       '@overture-stack/lectern-client': 2.0.0-beta.3
       copyfiles: 2.4.1
@@ -537,12 +537,12 @@ packages:
       - sqlite3
     dev: false
 
-  /@overture-stack/lyric@0.6.0:
-    resolution: {integrity: sha512-tx4PN2iMCntn28xug06KNocWPtlSoTpyhZi+bxJxvnO4NMzRsTqpq/bMhH5grZHX2TG1CBw3xSl+9UfBC0hEuA==}
+  /@overture-stack/lyric@0.7.0:
+    resolution: {integrity: sha512-2A6nJumRWnIIaoaOH07ROraN9IgqMnW+tSisjTLA37nBLpnQY5PJIuFLf2zvc4g8w1FgPPG2z87Gn3QN4AJnHg==}
     engines: {node: '>=20.0.0'}
     dependencies:
       '@overture-stack/lectern-client': 2.0.0-beta.3
-      '@overture-stack/lyric-data-model': 0.6.0
+      '@overture-stack/lyric-data-model': 0.7.0
       '@overture-stack/sqon-builder': 1.1.0
       bytes: 3.1.2
       csv-parse: 5.6.0
