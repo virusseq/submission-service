@@ -4,9 +4,12 @@ import { env } from './envConfig.js';
 
 const pinoConfig = {
 	level: env.LOG_LEVEL,
-	transport: {
-		target: 'pino-pretty',
+	formatters: {
+		level: (label) => {
+			return { level: label.toUpperCase() };
+		},
 	},
+	timestamp: pino.stdTimeFunctions.isoTime,
 } as LoggerOptions;
 
 export const logger = pino(pinoConfig);

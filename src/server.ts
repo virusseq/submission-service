@@ -3,7 +3,6 @@ import { errorHandler } from '@overture-stack/lyric';
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
-import { pino } from 'pino';
 
 import { env } from '@/common/envConfig.js';
 import { lyricProvider } from '@/core/provider.js';
@@ -11,7 +10,6 @@ import { requestLogger } from '@/middleware/requestLogger.js';
 import { healthCheckRouter } from '@/routers/healthCheck.js';
 import { openAPIRouter } from '@/routers/openApi.js';
 
-const logger = pino({ name: 'server start' });
 const app = express();
 
 // Middlewares
@@ -51,4 +49,4 @@ app.use('/api-docs', openAPIRouter);
 // Error handler
 app.use(errorHandler);
 
-export { app, logger };
+export { app };
