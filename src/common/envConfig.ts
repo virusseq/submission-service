@@ -16,19 +16,24 @@ const indexerCategoriesMappingSchema = z.string().regex(
 
 const envSchema = z.object({
 	ALLOWED_ORIGINS: z.string().optional(),
+	AUDIT_ENABLED: z.coerce.boolean().default(true),
 	DB_HOST: z.string(),
 	DB_NAME: z.string(),
 	DB_PASSWORD: z.string(),
 	DB_PORT: z.coerce.number().min(100),
 	DB_USER: z.string(),
+	ID_USELOCAL: z.coerce.boolean().default(true),
+	ID_CUSTOMALPHABET: z.string().default('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'),
+	ID_CUSTOMSIZE: z.coerce.number().default(21),
+	INDEXER_ENABLED: z.coerce.boolean().default(true),
+	INDEXER_SERVER_URL: z.string().url().optional(),
+	INDEXER_MAPPING: indexerCategoriesMappingSchema.optional(),
 	LECTERN_URL: z.string().url(),
 	LOG_LEVEL: z.enum(LogLeveOptions).default('info'),
 	NODE_ENV: z.enum(NodeEnvOptions).default('development'),
+	PLURALIZE_SCHEMAS_ENABLED: z.coerce.boolean().default(true),
 	SERVER_PORT: z.coerce.number().min(100).default(3000),
 	SERVER_UPLOAD_LIMIT: z.string().default('10mb'),
-	INDEXER_ENABLED: z.coerce.boolean().default(true),
-	INDEXER_SERVER_URL: z.string().url().optional(),
-	INDEXER_MAPPING: indexerCategoriesMappingSchema.optional()
 }).refine(data => {
 	// If INDEXER_ENABLED is true, INDEXER_SERVER_URL and INDEXER_MAPPING must not be empty
 	if (data.INDEXER_ENABLED) {

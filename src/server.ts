@@ -4,11 +4,13 @@ import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 
+
 import { env } from '@/common/envConfig.js';
 import { lyricProvider } from '@/core/provider.js';
 import { requestLogger } from '@/middleware/requestLogger.js';
 import { healthCheckRouter } from '@/routers/healthCheck.js';
 import { openAPIRouter } from '@/routers/openApi.js';
+import { submissionRouter } from './routers/submission.js';
 
 const app = express();
 
@@ -41,7 +43,7 @@ app.use('/audit', lyricProvider.routers.audit);
 app.use('/category', lyricProvider.routers.category);
 app.use('/data', lyricProvider.routers.submittedData);
 app.use('/dictionary', lyricProvider.routers.dictionary);
-app.use('/submission', lyricProvider.routers.submission);
+app.use('/submission', submissionRouter);
 
 // Swagger route
 app.use('/api-docs', openAPIRouter);
