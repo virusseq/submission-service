@@ -1,8 +1,9 @@
+import type { Schema } from '@overture-stack/lyric';
 import { parse as csvParse } from 'csv-parse';
 import firstline from 'firstline';
 import fs from 'fs';
+
 import { getSeparatorCharacter } from './format.js';
-import type { Schema } from '@overture-stack/lyric';
 
 function formatForExcelCompatibility(data: string) {
 	// tsv exported from excel might add double quotations to indicate string and escape double quotes
@@ -37,12 +38,12 @@ export const mapRecordToHeaders = (headers: string[], record: string[]) => {
  * Supported files: .tsv or .csv
  * @param {Express.Multer.File} file A file to read
  * @param {Schema} schema Schema to parse field names
- * @returns an array of records where each record is a key-value pair object representing 
+ * @returns an array of records where each record is a key-value pair object representing
  * a row in the file.
  */
 export const parseFileToRecords = async (
 	file: Express.Multer.File,
-	schema: Schema
+	schema: Schema,
 ): Promise<Record<string, string>[]> => {
 	const returnRecords: Record<string, string>[] = [];
 	const separatorCharacter = getSeparatorCharacter(file.originalname);
@@ -51,23 +52,19 @@ export const parseFileToRecords = async (
 	}
 
 	let headers: string[] = [];
-	let lineNumber = 0;
 
-	const schemaDisplayNames = schema
-		.fields
-		.reduce<Record<string, string>>((acc, field) => {
-			acc[field.meta?.displayName?.toString() || field.name] = field.name;
-			return acc;
-		}, {})
+	const schemaDisplayNames = schema.fields.reduce<Record<string, string>>((acc, field) => {
+		acc[field.meta?.displayName?.toString() || field.name] = field.name;
+		return acc;
+	}, {});
 
 	return new Promise((resolve) => {
 		const stream = fs.createReadStream(file.path).pipe(csvParse({ delimiter: separatorCharacter }));
 
 		stream.on('data', (record: string[]) => {
-			lineNumber++;
 			if (!headers.length) {
-				headers = record.map(value => schemaDisplayNames[value] || value)
-				console.log(`header:${JSON.stringify(headers)}`)
+				headers = record.map((value) => schemaDisplayNames[value] || value);
+				console.log(`header:${JSON.stringify(headers)}`);
 			} else {
 				const mappedRecord = mapRecordToHeaders(headers, record);
 
@@ -85,7 +82,6 @@ export const parseFileToRecords = async (
 		});
 	});
 };
-
 
 /**
  * Reads only first line of the file

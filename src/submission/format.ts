@@ -1,13 +1,13 @@
-import { z } from "zod";
+import { logger } from '@/common/logger.js';
+import { z } from 'zod';
 
 export const SUPPORTED_FILE_EXTENSIONS = z.enum(['tsv', 'csv']);
 export type SupportedFileExtensions = z.infer<typeof SUPPORTED_FILE_EXTENSIONS>;
 
 export const columnSeparatorValue = {
-    tsv: '\t',
-    csv: ',',
+	tsv: '\t',
+	csv: ',',
 } as const satisfies Record<SupportedFileExtensions, string>;
-
 
 /**
  * Extracts the extension from the filename and returns it if it's supported.
@@ -16,15 +16,16 @@ export const columnSeparatorValue = {
  * @returns {SupportedFileExtensions | undefined}
  */
 export const extractFileExtension = (fileName: string): SupportedFileExtensions | undefined => {
-    // Extract the file extension
-    const fileExtension = fileName.split('.').pop()?.toLowerCase();
+	// Extract the file extension
+	const fileExtension = fileName.split('.').pop()?.toLowerCase();
 
-    try {
-        // Parse to validate the extension against the Zod enum
-        return SUPPORTED_FILE_EXTENSIONS.parse(fileExtension);
-    } catch (error) {
-        return;
-    }
+	try {
+		// Parse to validate the extension against the Zod enum
+		return SUPPORTED_FILE_EXTENSIONS.parse(fileExtension);
+	} catch (error) {
+		logger.error(`Error extracting file extension`, error)
+		return;
+	}
 };
 
 /**

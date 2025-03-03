@@ -7,7 +7,7 @@ export const requestLogger = pinoHttp({
 	autoLogging: {
 		ignore(req) {
 			// disable Swagger UI logs and health endpoints
-			return ignoreUrls.some(url => req.url?.startsWith(url)) ?? false;
+			return ignoreUrls.some((url) => req.url?.startsWith(url)) ?? false;
 		},
 	},
 	serializers: {

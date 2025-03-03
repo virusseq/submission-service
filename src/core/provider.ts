@@ -18,11 +18,11 @@ const appConfig: AppConfig = {
 	},
 	features: {
 		audit: {
-			enabled: env.AUDIT_ENABLED
+			enabled: env.AUDIT_ENABLED,
 		},
 		recordHierarchy: {
-			pluralizeSchemasName: env.PLURALIZE_SCHEMAS_ENABLED
-		}
+			pluralizeSchemasName: env.PLURALIZE_SCHEMAS_ENABLED,
+		},
 	},
 	logger: {
 		level: env.LOG_LEVEL,
@@ -30,7 +30,7 @@ const appConfig: AppConfig = {
 	schemaService: {
 		url: env.LECTERN_URL,
 	},
-	onFinishCommit: onFinishCommitCallback
+	onFinishCommit: onFinishCommitCallback,
 };
 
 export const lyricProvider = provider(appConfig);

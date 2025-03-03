@@ -1,15 +1,14 @@
 import { errorHandler } from '@overture-stack/lyric';
-
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
-
 
 import { env } from '@/common/envConfig.js';
 import { lyricProvider } from '@/core/provider.js';
 import { requestLogger } from '@/middleware/requestLogger.js';
 import { healthCheckRouter } from '@/routers/healthCheck.js';
 import { openAPIRouter } from '@/routers/openApi.js';
+
 import { submissionRouter } from './routers/submission.js';
 
 const app = express();

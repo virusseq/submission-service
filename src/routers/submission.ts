@@ -10,13 +10,11 @@ const fileSizeLimit = getSizeInBytes(env.SERVER_UPLOAD_LIMIT);
 const upload = multer({ dest: '/tmp', limits: { fileSize: fileSizeLimit } });
 
 export const submissionRouter: Router = (() => {
-    const router = express.Router();
+	const router = express.Router();
 
-    router.post('/category/:categoryId/data', upload.array('files'), submit);
-    
-    router.use('', lyricProvider.routers.submission);
+	router.post('/category/:categoryId/data', upload.array('files'), submit);
 
-    return router;
+	router.use('', lyricProvider.routers.submission);
+
+	return router;
 })();
-
-
