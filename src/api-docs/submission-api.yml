@@ -112,6 +112,10 @@
       - Submission
     parameters:
       - $ref: '#/components/parameters/path/CategoryId'
+      - $ref: '#/components/parameters/query/Page'
+      - $ref: '#/components/parameters/query/PageSize'
+      - $ref: '#/components/parameters/query/OnlyActive'
+      - $ref: '#/components/parameters/query/OrganizationFilter'
     responses:
       200:
         description: Active Submissions

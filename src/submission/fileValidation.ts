@@ -1,19 +1,10 @@
-import { BATCH_ERROR_TYPE, getSchemaFieldNames, type BatchError, type Dictionary } from '@overture-stack/lyric';
-import { readHeaders } from './readFile.js';
+import bytes from 'bytes';
+import { BATCH_ERROR_TYPE, type BatchError, type Schema } from '@overture-stack/lyric';
 
+import { readHeaders } from './readFile.js';
 import { getSeparatorCharacter } from './format.js';
 
-export const isEntityInDictionary = (currentDictionary: Dictionary, entityName: string | undefined): boolean => {
-	const matchingEntityName = currentDictionary.schemas.find(
-		(schema) => schema.name.toLowerCase() === entityName,
-	);
-	if (!matchingEntityName) {
-		return false;
-	}
-	return true;
-}
-
-export const prevalidateUploadedFile = async (file: Express.Multer.File, currentDictionary: Dictionary): Promise<{ error?: BatchError; file: Express.Multer.File; }> => {
+export const prevalidateUploadedFile = async (file: Express.Multer.File, schema: Schema): Promise<{ error?: BatchError; file: Express.Multer.File; }> => {
 	// check if extension is supported
 	const separatorCharacter = getSeparatorCharacter(file.originalname);
 	if (!separatorCharacter) {
@@ -27,27 +18,14 @@ export const prevalidateUploadedFile = async (file: Express.Multer.File, current
 		};
 	}
 
-	// validate if entity name is present in the dictionary
-	const entityName = file.originalname.split('.')[0]?.toLowerCase();
-	const matchingEntityName = isEntityInDictionary(currentDictionary, entityName);
-	if (!matchingEntityName || !entityName) {
-		return {
-			error: {
-				type: BATCH_ERROR_TYPE.INVALID_FILE_NAME,
-				message: `Invalid entity name for submission`,
-				batchName: file.originalname,
-			},
-			file
-		}
-	}
-	
-	const schemaFieldNames = getSchemaFieldNames(currentDictionary, entityName);
 	const firstLine = await readHeaders(file);
 	const fileHeaders = firstLine.split(separatorCharacter);
 
-	const missingRequiredFields = schemaFieldNames.required.filter(
-		(requiredField) => !fileHeaders.includes(requiredField),
-	);
+	const missingRequiredFields = schema
+		.fields
+		.filter(field => field.restrictions && 'required' in field.restrictions) // filter required fields
+		.map(field => field.meta?.displayName?.toString() || field.name) // map displayName if exists
+		.filter((fieldName) => !fileHeaders.includes(fieldName)) 
 	if (missingRequiredFields.length > 0) {
 		return { 
 			error:{
@@ -59,4 +37,10 @@ export const prevalidateUploadedFile = async (file: Express.Multer.File, current
 		}
 	}
 	return { file };
+}
+
+export function getSizeInBytes(size: string | number): number {
+	// Parse the string value into an integer in bytes.
+	// If value is a number it is assumed is in bytes.
+	return bytes.parse(size) || 0;
 }

@@ -3,7 +3,6 @@ import { errorHandler } from '@overture-stack/lyric';
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
-import multer from 'multer';
 
 
 import { env } from '@/common/envConfig.js';
@@ -11,7 +10,7 @@ import { lyricProvider } from '@/core/provider.js';
 import { requestLogger } from '@/middleware/requestLogger.js';
 import { healthCheckRouter } from '@/routers/healthCheck.js';
 import { openAPIRouter } from '@/routers/openApi.js';
-import { submitFileRoute } from './submission/route.js';
+import { submissionRouter } from './routers/submission.js';
 
 const app = express();
 
@@ -36,8 +35,6 @@ app.use(
 // Request logging
 app.use(requestLogger);
 
-const upload = multer({ dest: '/tmp' });
-
 // Routes
 app.use('/health', healthCheckRouter);
 
@@ -46,10 +43,7 @@ app.use('/audit', lyricProvider.routers.audit);
 app.use('/category', lyricProvider.routers.category);
 app.use('/data', lyricProvider.routers.submittedData);
 app.use('/dictionary', lyricProvider.routers.dictionary);
-
-app.post('/submission/category/:categoryId/data', upload.array('files'), submitFileRoute(lyricProvider));
-
-app.use('/submission', lyricProvider.routers.submission);
+app.use('/submission', submissionRouter);
 
 // Swagger route
 app.use('/api-docs', openAPIRouter);
