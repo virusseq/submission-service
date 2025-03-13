@@ -17,6 +17,7 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import bytes from 'bytes';
 import { z } from 'zod';
 
 import { logger } from '@/common/logger.js';
@@ -61,3 +62,13 @@ export const getSeparatorCharacter = (fileName: string): string | undefined => {
 	}
 	return;
 };
+
+/**
+ * Parse the string or number value into an integer in bytes.
+ * If value is a number it is assumed is in bytes.
+ * @param size
+ * @returns
+ */
+export function getSizeInBytes(size: string | number): number {
+	return bytes.parse(size) || 0;
+}
