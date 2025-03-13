@@ -1,7 +1,7 @@
 {
   "name": "submission-service",
   "version": "0.3.0",
-  "description": "",
+  "description": "Data Submission for VirusSeq",
   "main": "dist/index.js",
   "scripts": {
     "\n==================  Build  ==================": "",
@@ -19,8 +19,8 @@
   },
   "private": true,
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Ontario Institure for Cancer Research",
+  "license": "GPL-3.0",
   "type": "module",
   "dependencies": {
     "@overture-stack/lyric": "^0.8.0",
