@@ -87,7 +87,7 @@ export const parseFileToRecords = async (
 		stream.on('data', (record: string[]) => {
 			if (!headers.length) {
 				headers = record
-					.map((value) => schemaDisplayNames[value] || value)
+					.map((value) => schemaDisplayNames[value] ?? value)
 					.filter((value) => value)
 					.map((str) => str.trim());
 			} else {
