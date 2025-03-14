@@ -24,10 +24,14 @@ import fs from 'fs';
 
 import { getSeparatorCharacter } from './format.js';
 
+/**
+ * This function removes extra double quotations from a given string.
+ * Usually csv or tsv exported from excel might add double quotations to indicate string and escape double quotes
+ *
+ * @param data The data to format
+ * @returns
+ */
 function formatForExcelCompatibility(data: string) {
-	// tsv exported from excel might add double quotations to indicate string and escape double quotes
-	// this function removes those extra double quatations from a given string
-
 	return data
 		.trim()
 		.replace(/^"/, '') // excel might add a beginning double quotes to indicate string
@@ -82,8 +86,10 @@ export const parseFileToRecords = async (
 
 		stream.on('data', (record: string[]) => {
 			if (!headers.length) {
-				headers = record.map((value) => schemaDisplayNames[value] || value);
-				console.log(`header:${JSON.stringify(headers)}`);
+				headers = record
+					.map((value) => schemaDisplayNames[value] ?? value)
+					.filter((value) => value)
+					.map((str) => str.trim());
 			} else {
 				const mappedRecord = mapRecordToHeaders(headers, record);
 

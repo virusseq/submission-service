@@ -19,7 +19,7 @@
 
 /submission/{submissionId}:
   get:
-    summary: Get active submission by ID
+    summary: Get submission by ID
     tags:
       - Submission
     parameters:
@@ -29,11 +29,11 @@
         required: true
     responses:
       200:
-        description: Active Submission
+        description: Submission details
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ActiveSubmissionResult'
+              $ref: '#/components/schemas/SubmissionResult'
 
       401:
         $ref: '#/components/responses/UnauthorizedError'
@@ -59,7 +59,7 @@
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ActiveSubmissionResult'
+              $ref: '#/components/schemas/SubmissionResult'
       400:
         $ref: '#/components/responses/BadRequest'
       401:
@@ -108,7 +108,7 @@
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ActiveSubmissionResult'
+              $ref: '#/components/schemas/SubmissionResult'
       400:
         $ref: '#/components/responses/BadRequest'
       401:
@@ -124,7 +124,7 @@
 
 /submission/category/{categoryId}:
   get:
-    summary: Retrieve the Active Submissions for a category in this user session
+    summary: Retrieve the Submissions for a category in this user session
     tags:
       - Submission
     parameters:
@@ -135,36 +135,11 @@
       - $ref: '#/components/parameters/query/OrganizationFilter'
     responses:
       200:
-        description: Active Submissions
+        description: Submissions details
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ActiveSubmissionsSummaryResult'
-
-      401:
-        $ref: '#/components/responses/UnauthorizedError'
-      404:
-        $ref: '#/components/responses/NotFound'
-      500:
-        $ref: '#/components/responses/ServerError'
-      503:
-        $ref: '#/components/responses/ServiceUnavailableError'
-
-/submission/category/{categoryId}/organization/{organization}:
-  get:
-    summary: Retrieve the Active Submission for a category and organization in this user session
-    tags:
-      - Submission
-    parameters:
-      - $ref: '#/components/parameters/path/CategoryId'
-      - $ref: '#/components/parameters/path/Organization'
-    responses:
-      200:
-        description: Active Submission
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ActiveSubmissionSummaryResult'
+              $ref: '#/components/schemas/SubmissionsSummaryResult'
 
       401:
         $ref: '#/components/responses/UnauthorizedError'

@@ -25,7 +25,7 @@ import { z } from 'zod';
 import { logger } from '@/common/logger.js';
 import { lyricProvider } from '@/core/provider.js';
 import { type RequestValidation, validateRequest } from '@/middleware/requestValidation.js';
-import { prevalidateUploadedFile } from '@/submission/fileValidation.js';
+import { prevalidateNewDataFile } from '@/submission/fileValidation.js';
 import { parseFileToRecords } from '@/submission/readFile.js';
 
 interface SubmitRequestPathParams extends ParamsDictionary {
@@ -92,7 +92,7 @@ export const submit = validateRequest(submitRequestSchema, async (req, res) => {
 				continue;
 			}
 
-			const { file: prevalidatedFile, error } = await prevalidateUploadedFile(file, schema);
+			const { file: prevalidatedFile, error } = await prevalidateNewDataFile(file, schema);
 			if (error) {
 				fileErrors.push(error);
 				continue;
@@ -116,14 +116,14 @@ export const submit = validateRequest(submitRequestSchema, async (req, res) => {
 	}
 
 	let status: string = CREATE_SUBMISSION_STATUS.PROCESSING;
-	if (fileErrors.length == 0) {
-		logger.info(`Submission uploaded successfully`);
-	} else if (files.length === entityList.length) {
-		logger.info('Failed to process this request');
+	if (entityList.length === 0) {
+		logger.info('Unable to process the submission');
 		status = CREATE_SUBMISSION_STATUS.INVALID_SUBMISSION;
-	} else {
-		logger.info('Found some errors processing this request');
+	} else if (fileErrors.length > 0) {
+		logger.info('Submission processed with some errors');
 		status = CREATE_SUBMISSION_STATUS.PARTIAL_SUBMISSION;
+	} else {
+		logger.info(`Submission processed successfully`);
 	}
 
 	// This response provides the details of file Submission
