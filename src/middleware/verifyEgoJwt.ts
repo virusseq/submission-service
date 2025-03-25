@@ -50,7 +50,9 @@ const isValidTokenPayload = (decodedToken: EgoJwtData): boolean => {
  */
 const extractTokenFromHeader = (req: Request): string | undefined => {
 	const authHeader = req.headers['authorization'];
-	if (!authHeader || !authHeader.startsWith('Bearer ')) return undefined;
+	if (!authHeader || !authHeader.startsWith('Bearer ')) {
+		return;
+	}
 
 	return authHeader.split(' ')[1];
 };

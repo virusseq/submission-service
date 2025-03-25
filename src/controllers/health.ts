@@ -17,15 +17,15 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import express, { Router } from 'express';
-import { serve, setup } from 'swagger-ui-express';
+import { Request, Response } from 'express';
 
-import swaggerDoc from '@/common/swaggerDoc.js';
+const health = (req: Request, res: Response) => {
+	const healthcheck = {
+		uptime: process.uptime(),
+		message: 'OK',
+		timestamp: Date.now(),
+	};
+	res.send(healthcheck);
+};
 
-export const openAPIRouter: Router = (() => {
-	const router = express.Router();
-
-	router.use('/', serve, setup(swaggerDoc));
-
-	return router;
-})();
+export default { health };

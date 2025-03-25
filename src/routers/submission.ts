@@ -18,14 +18,24 @@
  */
 
 import express, { Router } from 'express';
-import { serve, setup } from 'swagger-ui-express';
+import multer from 'multer';
 
-import swaggerDoc from '@/common/swaggerDoc.js';
+import { env } from '@/common/envConfig.js';
+import { editData } from '@/controllers/submission/editData.js';
+import { submit } from '@/controllers/submission/submit.js';
+import { lyricProvider } from '@/core/provider.js';
+import { getSizeInBytes } from '@/submission/format.js';
 
-export const openAPIRouter: Router = (() => {
+const fileSizeLimit = getSizeInBytes(env.SERVER_UPLOAD_LIMIT);
+const upload = multer({ dest: '/tmp', limits: { fileSize: fileSizeLimit } });
+
+export const submissionRouter: Router = (() => {
 	const router = express.Router();
 
-	router.use('/', serve, setup(swaggerDoc));
+	router.post('/category/:categoryId/data', upload.array('files'), submit);
+	router.put('/category/:categoryId/data', upload.array('files'), editData);
+
+	router.use('', lyricProvider.routers.submission);
 
 	return router;
 })();

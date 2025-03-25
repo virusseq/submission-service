@@ -6,11 +6,17 @@ settings:
 
 dependencies:
   '@overture-stack/lyric':
-    specifier: ^0.5.1
-    version: 0.5.1
+    specifier: ^0.8.1
+    version: 0.8.1
+  bytes:
+    specifier: ^3.1.2
+    version: 3.1.2
   cors:
     specifier: ^2.8.5
     version: 2.8.5
+  csv-parse:
+    specifier: ^5.6.0
+    version: 5.6.0
   dotenv:
     specifier: ^16.4.5
     version: 16.4.5
@@ -19,7 +25,10 @@ dependencies:
     version: 2.2.1
   express:
     specifier: ^4.21.0
-    version: 4.21.1
+    version: 4.21.0
+  firstline:
+    specifier: ^2.0.2
+    version: 2.0.2
   helmet:
     specifier: ^7.2.0
     version: 7.2.0
@@ -29,6 +38,9 @@ dependencies:
   jwt-decode:
     specifier: ^4.0.0
     version: 4.0.0
+  multer:
+    specifier: 1.4.5-lts.1
+    version: 1.4.5-lts.1
   pino:
     specifier: ^9.4.0
     version: 9.5.0
@@ -40,21 +52,36 @@ dependencies:
     version: 6.2.8(openapi-types@12.1.3)
   swagger-ui-express:
     specifier: ^5.0.1
-    version: 5.0.1(express@4.21.1)
+    version: 5.0.1(express@4.21.0)
   zod:
     specifier: ^3.23.8
     version: 3.23.8
 
 devDependencies:
+  '@types/bytes':
+    specifier: ^3.1.5
+    version: 3.1.5
   '@types/cors':
     specifier: ^2.8.17
     version: 2.8.17
   '@types/express':
     specifier: ^4.17.21
     version: 4.17.21
+  '@types/express-serve-static-core':
+    specifier: 4.19.5
+    version: 4.19.5
+  '@types/firstline':
+    specifier: ^2.0.4
+    version: 2.0.4
   '@types/jsonwebtoken':
     specifier: ^9.0.7
     version: 9.0.7
+  '@types/multer':
+    specifier: ^1.4.12
+    version: 1.4.12
+  '@types/qs':
+    specifier: ^6.9.18
+    version: 6.9.18
   '@types/swagger-jsdoc':
     specifier: ^6.0.4
     version: 6.0.4
@@ -512,14 +539,14 @@ packages:
       zod: 3.23.8
     dev: false
 
-  /@overture-stack/lyric-data-model@0.5.1:
-    resolution: {integrity: sha512-tSOkiMO1I3QFyQGaxJzEelZg2V/UaSi6Gwmp79h6EFurVQhRihV06t4EomGV5K4JCABEPyv4q5lGCnPrsI3Mvg==}
+  /@overture-stack/lyric-data-model@0.8.1:
+    resolution: {integrity: sha512-b0b9GwQ2KYX2YOSb6VJbo+bFu4DTFTEzzzH1HS6l3TRB8f4kZU22+XM9crY2IqIDXe2fbF2Pj77SElb/Ijwf2A==}
     dependencies:
       '@overture-stack/lectern-client': 2.0.0-beta.3
       copyfiles: 2.4.1
       dotenv: 16.4.5
-      drizzle-orm: 0.29.5(pg@8.13.1)
-      pg: 8.13.1
+      drizzle-orm: 0.29.5(pg@8.14.1)
+      pg: 8.14.1
     transitivePeerDependencies:
       - '@aws-sdk/client-rds-data'
       - '@cloudflare/workers-types'
@@ -546,24 +573,19 @@ packages:
       - sqlite3
     dev: false
 
-  /@overture-stack/lyric@0.5.1:
-    resolution: {integrity: sha512-qHGjOhFlS6axBYkkHHp56oH/2HgjnZ6/ymqJlMzvOZ8c7Aq/K+m9KP/5THV2jX4frybUFDsdddcygxcc0pqRsQ==}
+  /@overture-stack/lyric@0.8.1:
+    resolution: {integrity: sha512-B3e+TmqZH+PwUJPm8Wh8HCU2p/gRpD/4OPrH/gOWaN4qnh880la5i7Se0I4DeHreljv96abvg3DDmq1vJCDi3g==}
     engines: {node: '>=20.0.0'}
     dependencies:
       '@overture-stack/lectern-client': 2.0.0-beta.3
-      '@overture-stack/lyric-data-model': 0.5.1
+      '@overture-stack/lyric-data-model': 0.8.1
       '@overture-stack/sqon-builder': 1.1.0
-      bytes: 3.1.2
-      csv-parse: 5.6.0
-      deep-freeze: 0.0.1
       dotenv: 16.4.5
-      drizzle-orm: 0.29.5(pg@8.13.1)
-      express: 4.21.1
-      firstline: 2.0.2
+      drizzle-orm: 0.29.5(pg@8.14.1)
+      express: 4.21.0
       lodash-es: 4.17.21
-      multer: 1.4.5-lts.1
-      nanoid: 5.0.9
-      pg: 8.13.1
+      nanoid: 5.1.5
+      pg: 8.14.1
       plur: 5.1.0
       winston: 3.17.0
       zod: 3.23.8
@@ -618,6 +640,10 @@ packages:
       '@types/node': 22.10.0
     dev: true
 
+  /@types/bytes@3.1.5:
+    resolution: {integrity: sha512-VgZkrJckypj85YxEsEavcMmmSOIzkUHqWmM4CCyia5dc54YwsXzJ5uT4fYxBQNEXx+oF1krlhgCbvfubXqZYsQ==}
+    dev: true
+
   /@types/connect@3.4.38:
     resolution: {integrity: sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug==}
     dependencies:
@@ -634,11 +660,11 @@ packages:
     resolution: {integrity: sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==}
     dev: true
 
-  /@types/express-serve-static-core@4.19.6:
-    resolution: {integrity: sha512-N4LZ2xG7DatVqhCZzOGb1Yi5lMbXSZcmdLDe9EzSndPV2HpWYWzRbaerl2n27irrm94EPpprqa8KpskPT085+A==}
+  /@types/express-serve-static-core@4.19.5:
+    resolution: {integrity: sha512-y6W03tvrACO72aijJ5uF02FRq5cgDR9lUxddQ8vyF+GvmjJQqbzDcJngEjURc+ZsG31VI3hODNZJ2URj86pzmg==}
     dependencies:
       '@types/node': 22.10.0
-      '@types/qs': 6.9.17
+      '@types/qs': 6.9.18
       '@types/range-parser': 1.2.7
       '@types/send': 0.17.4
     dev: true
@@ -647,9 +673,15 @@ packages:
     resolution: {integrity: sha512-ejlPM315qwLpaQlQDTjPdsUFSc6ZsP4AN6AlWnogPjQ7CVi7PYF3YVz+CY3jE2pwYf7E/7HlDAN0rV2GxTG0HQ==}
     dependencies:
       '@types/body-parser': 1.19.5
-      '@types/express-serve-static-core': 4.19.6
-      '@types/qs': 6.9.17
+      '@types/express-serve-static-core': 4.19.5
+      '@types/qs': 6.9.18
       '@types/serve-static': 1.15.7
+    dev: true
+
+  /@types/firstline@2.0.4:
+    resolution: {integrity: sha512-EYoMzk783ncj3soLGADXD/rklDMw1PAO5Hc3lRZa5G21vkfacwkdTlIdhTJ39omqDLezTSmxjDG1psd4A/mUHg==}
+    dependencies:
+      '@types/node': 22.10.0
     dev: true
 
   /@types/http-errors@2.0.4:
@@ -669,14 +701,20 @@ packages:
     resolution: {integrity: sha512-/pyBZWSLD2n0dcHE3hq8s8ZvcETHtEuF+3E7XVt0Ig2nvsVQXdghHVcEkIWjy9A0wKfTn97a/PSDYohKIlnP/w==}
     dev: true
 
+  /@types/multer@1.4.12:
+    resolution: {integrity: sha512-pQ2hoqvXiJt2FP9WQVLPRO+AmiIm/ZYkavPlIQnx282u4ZrVdztx0pkh3jjpQt0Kz+YI0YhSG264y08UJKoUQg==}
+    dependencies:
+      '@types/express': 4.17.21
+    dev: true
+
   /@types/node@22.10.0:
     resolution: {integrity: sha512-XC70cRZVElFHfIUB40FgZOBbgJYFKKMa5nb9lxcwYstFG/Mi+/Y0bGS+rs6Dmhmkpq4pnNiLiuZAbc02YCOnmA==}
     dependencies:
       undici-types: 6.20.0
     dev: true
 
-  /@types/qs@6.9.17:
-    resolution: {integrity: sha512-rX4/bPcfmvxHDv0XjfJELTTr+iB+tn032nPILqHm5wbthUUUuVtNGGqzhya9XUxjTP8Fpr0qYgSZZKxGY++svQ==}
+  /@types/qs@6.9.18:
+    resolution: {integrity: sha512-kK7dgTYDyGqS+e2Q4aK9X3D7q234CIZ1Bv0q/7Z5IwRDoADNU81xXJK/YVyLbLTZCoIwUoDoffFeF+p/eIklAA==}
     dev: true
 
   /@types/range-parser@1.2.7:
@@ -1118,8 +1156,8 @@ packages:
     resolution: {integrity: sha512-QADzlaHc8icV8I7vbaJXJwod9HWYp8uCqf1xa4OfNu1T7JVxQIrUgOWtHdNDtPiywmFbiS12VjotIXLrKM3orQ==}
     dev: false
 
-  /cookie@0.7.1:
-    resolution: {integrity: sha512-6DnInpx7SJ2AK3+CTUE/ZM0vWTUboZCegxhC2xiIydHR9jNuTAASBrfEpHhiGOZw/nX51bHt6YQl8jsGo4y/0w==}
+  /cookie@0.6.0:
+    resolution: {integrity: sha512-U71cyTamuh1CRNCfpGY6to28lxvNwPG4Guz/EVjgf3Jmzv0vlDp1atT9eS5dDjMYHucpHbWns6Lwf3BKz6svdw==}
     engines: {node: '>= 0.6'}
     dev: false
 
@@ -1186,10 +1224,6 @@ packages:
       ms: 2.1.3
     dev: true
 
-  /deep-freeze@0.0.1:
-    resolution: {integrity: sha512-Z+z8HiAvsGwmjqlphnHW5oz6yWlOwu6EQfFTjmeTWlDeda3FS2yv3jhq35TX/ewmsnqB+RX2IdsIOyjJCQN5tg==}
-    dev: false
-
   /deep-is@0.1.4:
     resolution: {integrity: sha512-oIPzksmTg4/MriiaYGO+okXDT7ztn/w3Eptv/+gSIdMdKsJo0u4CfYNFJPy+4SKMuCqGw2wxnA+URMg3t8a/bQ==}
     dev: true
@@ -1225,7 +1259,7 @@ packages:
     engines: {node: '>=12'}
     dev: false
 
-  /drizzle-orm@0.29.5(pg@8.13.1):
+  /drizzle-orm@0.29.5(pg@8.14.1):
     resolution: {integrity: sha512-jS3+uyzTz4P0Y2CICx8FmRQ1eplURPaIMWDn/yq6k4ShRFj9V7vlJk67lSf2kyYPzQ60GkkNGXcJcwrxZ6QCRw==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
@@ -1296,7 +1330,7 @@ packages:
       sqlite3:
         optional: true
     dependencies:
-      pg: 8.13.1
+      pg: 8.14.1
     dev: false
 
   /eastasianwidth@0.2.0:
@@ -1542,8 +1576,8 @@ packages:
     engines: {node: '>=0.8.x'}
     dev: true
 
-  /express@4.21.1:
-    resolution: {integrity: sha512-YSFlK1Ee0/GC8QaO91tHcDxJiE/X4FbpAyQWkxAvG6AXCuR65YzK8ua6D9hvi/TzUfZMpc+BwuM1IPw8fmQBiQ==}
+  /express@4.21.0:
+    resolution: {integrity: sha512-VqcNGcj/Id5ZT1LZ/cfihi3ttTn+NJmkli2eZADigjq29qTlWi/hAQ43t/VLPq8+UX06FCEx3ByOYet6ZFblng==}
     engines: {node: '>= 0.10.0'}
     dependencies:
       accepts: 1.3.8
@@ -1551,7 +1585,7 @@ packages:
       body-parser: 1.20.3
       content-disposition: 0.5.4
       content-type: 1.0.5
-      cookie: 0.7.1
+      cookie: 0.6.0
       cookie-signature: 1.0.6
       debug: 2.6.9
       depd: 2.0.0
@@ -2217,8 +2251,8 @@ packages:
       xtend: 4.0.2
     dev: false
 
-  /nanoid@5.0.9:
-    resolution: {integrity: sha512-Aooyr6MXU6HpvvWXKoVoXwKMs/KyVakWwg7xQfv5/S/RIgJMy0Ifa45H9qqYy7pTCszrHzP21Uk4PZq2HpEM8Q==}
+  /nanoid@5.1.5:
+    resolution: {integrity: sha512-Ir/+ZpE9fDsNH0hQ3C68uyThDXzYcim2EqcZ8zn8Chtt1iylPT9xXJB0kPCnqzgcEGikO9RxSrh63MsmVCU7Fw==}
     engines: {node: ^18 || >=20}
     hasBin: true
     dev: false
@@ -2369,16 +2403,16 @@ packages:
     engines: {node: '>=4.0.0'}
     dev: false
 
-  /pg-pool@3.7.0(pg@8.13.1):
-    resolution: {integrity: sha512-ZOBQForurqh4zZWjrgSwwAtzJ7QiRX0ovFkZr2klsen3Nm0aoh33Ls0fzfv3imeH/nw/O27cjdz5kzYJfeGp/g==}
+  /pg-pool@3.8.0(pg@8.14.1):
+    resolution: {integrity: sha512-VBw3jiVm6ZOdLBTIcXLNdSotb6Iy3uOCwDGFAksZCXmi10nyRvnP2v3jl4d+IsLYRyXf6o9hIm/ZtUzlByNUdw==}
     peerDependencies:
       pg: '>=8.0'
     dependencies:
-      pg: 8.13.1
+      pg: 8.14.1
     dev: false
 
-  /pg-protocol@1.7.0:
-    resolution: {integrity: sha512-hTK/mE36i8fDDhgDFjy6xNOG+LCorxLG3WO17tku+ij6sVHXh1jQUJ8hYAnRhNla4QVD2H8er/FOjc/+EgC6yQ==}
+  /pg-protocol@1.8.0:
+    resolution: {integrity: sha512-jvuYlEkL03NRvOoyoRktBK7+qU5kOvlAwvmrH8sr3wbLrOdVWsRxQfz8mMy9sZFsqJ1hEWNfdWKI4SAmoL+j7g==}
     dev: false
 
   /pg-types@2.2.0:
@@ -2392,8 +2426,8 @@ packages:
       postgres-interval: 1.2.0
     dev: false
 
-  /pg@8.13.1:
-    resolution: {integrity: sha512-OUir1A0rPNZlX//c7ksiu7crsGZTKSOXJPgtNiHGIlC9H0lO+NC6ZDYksSgBYY/thSWhnSRBv8w1lieNNGATNQ==}
+  /pg@8.14.1:
+    resolution: {integrity: sha512-0TdbqfjwIun9Fm/r89oB7RFQ0bLgduAhiIqIXOsyKoiC/L54DbuAAzIEN/9Op0f1Po9X7iCPXGoa/Ah+2aI8Xw==}
     engines: {node: '>= 8.0.0'}
     peerDependencies:
       pg-native: '>=3.0.1'
@@ -2402,8 +2436,8 @@ packages:
         optional: true
     dependencies:
       pg-connection-string: 2.7.0
-      pg-pool: 3.7.0(pg@8.13.1)
-      pg-protocol: 1.7.0
+      pg-pool: 3.8.0(pg@8.14.1)
+      pg-protocol: 1.8.0
       pg-types: 2.2.0
       pgpass: 1.0.5
     optionalDependencies:
@@ -2880,13 +2914,13 @@ packages:
       '@scarf/scarf': 1.4.0
     dev: false
 
-  /swagger-ui-express@5.0.1(express@4.21.1):
+  /swagger-ui-express@5.0.1(express@4.21.0):
     resolution: {integrity: sha512-SrNU3RiBGTLLmFU8GIJdOdanJTl4TOmT27tt3bWWHppqYmAZ6IDuEuBvMU6nZq0zLEe6b/1rACXCgLZqO6ZfrA==}
     engines: {node: '>= v0.10.32'}
     peerDependencies:
       express: '>=4.0.0 || >=5.0.0-beta'
     dependencies:
-      express: 4.21.1
+      express: 4.21.0
       swagger-ui-dist: 5.18.2
     dev: false
 
