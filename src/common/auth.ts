@@ -17,37 +17,23 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import swaggerJSDoc from 'swagger-jsdoc';
+import type { UserSession } from '@overture-stack/lyric';
 
-import { env } from '@/common/envConfig.js';
+/**
+ * checks if a user has write access to a specific organization.
+ * @param organization
+ * @param user
+ * @returns
+ */
+export const hasUserWriteAccess = (organization: string, user?: UserSession): boolean => {
+	if (!user) {
+		return false;
+	}
 
-import { name, version } from './manifest.js';
+	if (user.isAdmin) {
+		// if user is admin should have access to write all organization
+		return true;
+	}
 
-const swaggerDefinition: swaggerJSDoc.OAS3Definition = {
-	openapi: '3.0.1',
-	info: {
-		title: name,
-		version,
-	},
-	...(env.AUTH_ENABLED
-		? {
-				security: [
-					{
-						bearerAuth: [],
-					},
-				],
-			}
-		: {}),
+	return user.allowedWriteOrganizations.includes(organization);
 };
-
-const options: swaggerJSDoc.OAS3Options = {
-	swaggerDefinition,
-	// Paths to files containing OpenAPI definitions
-	apis: [
-		'./src/routes/*.ts',
-		'./src/api-docs/*.yml',
-		...(env.AUTH_ENABLED ? ['./src/api-docs/security/bearer.yml'] : []),
-	],
-};
-
-export default swaggerJSDoc(options);

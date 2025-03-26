@@ -17,37 +17,44 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import swaggerJSDoc from 'swagger-jsdoc';
+import { NextFunction, Request, Response } from 'express';
+
+import { type UserSession } from '@overture-stack/lyric';
 
 import { env } from '@/common/envConfig.js';
 
-import { name, version } from './manifest.js';
+import { verifyToken } from './verifyEgoJwt.js';
 
-const swaggerDefinition: swaggerJSDoc.OAS3Definition = {
-	openapi: '3.0.1',
-	info: {
-		title: name,
-		version,
-	},
-	...(env.AUTH_ENABLED
-		? {
-				security: [
-					{
-						bearerAuth: [],
-					},
-				],
-			}
-		: {}),
+// Extends the Request interface to include a custom `user` object
+declare module 'express-serve-static-core' {
+	interface Request {
+		user?: UserSession;
+	}
+}
+
+/**
+ * Middleware to handle authentication using JWT token if enabled
+ * @param req
+ * @param res
+ * @param next
+ * @returns
+ */
+export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+	if (!env.AUTH_ENABLED) {
+		return next();
+	}
+
+	try {
+		const authResult = verifyToken(req);
+
+		if (authResult.errorCode) {
+			return res.status(authResult.errorCode).json({ message: authResult.errorMessage });
+		}
+
+		req.user = authResult.user;
+		return next();
+	} catch (error) {
+		console.error(`Error verifying token ${error}`);
+		return res.status(403).json({ message: 'Forbidden: Invalid token' });
+	}
 };
-
-const options: swaggerJSDoc.OAS3Options = {
-	swaggerDefinition,
-	// Paths to files containing OpenAPI definitions
-	apis: [
-		'./src/routes/*.ts',
-		'./src/api-docs/*.yml',
-		...(env.AUTH_ENABLED ? ['./src/api-docs/security/bearer.yml'] : []),
-	],
-};
-
-export default swaggerJSDoc(options);

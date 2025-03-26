@@ -39,6 +39,8 @@ const envSchema = z
 		ALLOWED_ORIGINS: z.string().optional(),
 		AUDIT_ENABLED: booleanString.default('true'),
 		AUTH_ENABLED: booleanString.default('true'),
+		AUTH_PERMISSION_ADMIN: z.string().default(''),
+		AUTH_PERMISSION_SUFFIX_WRITE_ORG: z.string().default(''),
 		AUTH_PUBLIC_KEY: z.string().default(''),
 		DB_HOST: z.string(),
 		DB_NAME: z.string(),

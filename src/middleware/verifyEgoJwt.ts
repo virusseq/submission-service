@@ -1,3 +1,22 @@
+/*
+ * Copyright (c) 2025 The Ontario Institute for Cancer Research. All rights reserved
+ *
+ * This program and the accompanying materials are made available under the terms of
+ * the GNU Affero General Public License v3.0. You should have received a copy of the
+ * GNU Affero General Public License along with this program.
+ *  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+ * SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+ * TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 import { Request } from 'express';
 import jwt from 'jsonwebtoken';
 import { jwtDecode } from 'jwt-decode';
@@ -12,9 +31,11 @@ import logger from '@/common/logger.js';
  */
 interface EgoJwtData {
 	context: {
+		scope: string[];
 		user: {
 			email: string;
 			status: string;
+			type: string;
 		};
 	};
 }
@@ -58,6 +79,38 @@ const extractTokenFromHeader = (req: Request): string | undefined => {
 };
 
 /**
+ * Finds the organizations with write permissions from the provided list of scopes
+ * @param scope
+ * @returns
+ */
+const findWriteOrganizations = (scope: string[]): string[] => {
+	const suffix = env.AUTH_PERMISSION_SUFFIX_WRITE_ORG?.trim();
+
+	// Return empty array if suffix is empty or undefined
+	if (!suffix) {
+		return [];
+	}
+
+	return scope.filter((org) => org.endsWith(suffix));
+};
+
+/**
+ * Checks if the given scope array includes the admin group
+ * @param scope
+ * @returns
+ */
+const hasAdminScope = (scope: string[]): boolean => {
+	const admingroup = env.AUTH_PERMISSION_ADMIN.trim();
+
+	// Return false if admin group is empty or undefined
+	if (!admingroup) {
+		return false;
+	}
+
+	return scope.some((value) => value === env.AUTH_PERMISSION_ADMIN);
+};
+
+/**
  * Function to verify the JWT token in the request header.
  * It checks if authentication is enabled, verifies the token is valid, and decodes the token.
  * If everything is valid, it returns the user information and status 'authenticated'.
@@ -87,6 +140,8 @@ export const verifyToken = (req: Request): UserSessionResult => {
 		return {
 			user: {
 				username: decodedToken?.context?.user?.email || '',
+				isAdmin: hasAdminScope(decodedToken?.context?.scope),
+				allowedWriteOrganizations: findWriteOrganizations(decodedToken?.context?.scope || []),
 			},
 		};
 	} catch (err) {
