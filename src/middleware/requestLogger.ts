@@ -17,12 +17,15 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { pinoHttp } from 'pino-http';
+
+import logger from '@/common/logger.js';
 
 const ignoreUrls = ['/api-docs', '/health'];
 
 export const requestLogger = pinoHttp({
+	logger,
 	autoLogging: {
 		ignore(req) {
 			// disable Swagger UI logs and health endpoints

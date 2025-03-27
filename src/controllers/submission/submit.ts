@@ -17,12 +17,15 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { BATCH_ERROR_TYPE, type BatchError } from '@overture-stack/lyric';
 import type { ParamsDictionary } from 'express-serve-static-core';
 import type { ParsedQs } from 'qs';
 import { z } from 'zod';
 
-import { logger } from '@/common/logger.js';
+import { BATCH_ERROR_TYPE, type BatchError } from '@overture-stack/lyric';
+
+import { hasUserWriteAccess } from '@/common/auth.js';
+import { env } from '@/common/envConfig.js';
+import logger from '@/common/logger.js';
 import { lyricProvider } from '@/core/provider.js';
 import { type RequestValidation, validateRequest } from '@/middleware/requestValidation.js';
 import { prevalidateNewDataFile } from '@/submission/fileValidation.js';
@@ -51,15 +54,20 @@ export const submit = validateRequest(submitRequestSchema, async (req, res) => {
 	const categoryId = Number(req.params.categoryId);
 	const files = Array.isArray(req.files) ? req.files : [];
 	const organization = req.body.organization;
-
-	// TODO: get userName from auth
-	const userName = '';
+	const user = req.user;
 
 	logger.info(
 		`Upload Submission Request: categoryId '${categoryId}'`,
 		` organization '${organization}'`,
 		` files: '${files?.map((f) => f.originalname)}'`,
 	);
+
+	if (env.AUTH_ENABLED && !hasUserWriteAccess(organization, user)) {
+		return res.status(403).json({
+			error: 'Forbidden',
+			message: `User is not authorized to submit data to '${organization}'`,
+		});
+	}
 
 	if (!files || files.length == 0) {
 		throw new lyricProvider.utils.errors.BadRequest(
@@ -73,6 +81,8 @@ export const submit = validateRequest(submitRequestSchema, async (req, res) => {
 	if (!currentDictionary) {
 		throw new lyricProvider.utils.errors.BadRequest(`Dictionary in category '${categoryId}' not found`);
 	}
+
+	const userName = user?.username || '';
 
 	const fileErrors: BatchError[] = [];
 	let submissionId: number | undefined;

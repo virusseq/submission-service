@@ -17,31 +17,23 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import express, { type Router } from 'express';
-import multer from 'multer';
+import type { UserSession } from '@overture-stack/lyric';
 
-import { errorHandler } from '@overture-stack/lyric';
+/**
+ * checks if a user has write access to a specific organization.
+ * @param organization
+ * @param user
+ * @returns
+ */
+export const hasUserWriteAccess = (organization: string, user?: UserSession): boolean => {
+	if (!user) {
+		return false;
+	}
 
-import { env } from '@/common/envConfig.js';
-import { editData } from '@/controllers/submission/editData.js';
-import { submit } from '@/controllers/submission/submit.js';
-import { lyricProvider } from '@/core/provider.js';
-import { authMiddleware } from '@/middleware/authMiddleware.js';
-import { getSizeInBytes } from '@/submission/format.js';
+	if (user.isAdmin) {
+		// if user is admin should have access to write all organization
+		return true;
+	}
 
-const fileSizeLimit = getSizeInBytes(env.SERVER_UPLOAD_LIMIT);
-const upload = multer({ dest: '/tmp', limits: { fileSize: fileSizeLimit } });
-
-export const submissionRouter: Router = (() => {
-	const router = express.Router();
-
-	router.use(authMiddleware);
-
-	router.post('/category/:categoryId/data', upload.array('files'), submit);
-	router.put('/category/:categoryId/data', upload.array('files'), editData);
-
-	router.use('', lyricProvider.routers.submission);
-	router.use(errorHandler);
-
-	return router;
-})();
+	return user.allowedWriteOrganizations.includes(organization);
+};

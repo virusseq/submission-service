@@ -17,23 +17,23 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { AppConfig, provider } from '@overture-stack/lyric';
+import { type AppConfig, provider } from '@overture-stack/lyric';
 
 import { env } from '@/common/envConfig.js';
 import { onFinishCommitCallback } from '@/indexer/onFinishCommit.js';
+import { verifyToken } from '@/middleware/verifyEgoJwt.js';
 
 const appConfig: AppConfig = {
+	auth: {
+		enabled: env.AUTH_ENABLED,
+		customAuthHandler: verifyToken,
+	},
 	db: {
 		host: env.DB_HOST,
 		port: env.DB_PORT,
 		database: env.DB_NAME,
 		user: env.DB_USER,
 		password: env.DB_PASSWORD,
-	},
-	idService: {
-		customAlphabet: env.ID_CUSTOMALPHABET,
-		customSize: env.ID_CUSTOMSIZE,
-		useLocal: env.ID_USELOCAL,
 	},
 	features: {
 		audit: {
@@ -43,13 +43,18 @@ const appConfig: AppConfig = {
 			pluralizeSchemasName: env.PLURALIZE_SCHEMAS_ENABLED,
 		},
 	},
+	idService: {
+		customAlphabet: env.ID_CUSTOMALPHABET,
+		customSize: env.ID_CUSTOMSIZE,
+		useLocal: env.ID_USELOCAL,
+	},
 	logger: {
 		level: env.LOG_LEVEL,
 	},
+	onFinishCommit: onFinishCommitCallback,
 	schemaService: {
 		url: env.LECTERN_URL,
 	},
-	onFinishCommit: onFinishCommitCallback,
 };
 
 export const lyricProvider = provider(appConfig);

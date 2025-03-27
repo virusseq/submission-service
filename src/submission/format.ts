@@ -20,7 +20,7 @@
 import bytes from 'bytes';
 import { z } from 'zod';
 
-import { logger } from '@/common/logger.js';
+import logger from '@/common/logger.js';
 
 export const SUPPORTED_FILE_EXTENSIONS = z.enum(['tsv', 'csv']);
 export type SupportedFileExtensions = z.infer<typeof SUPPORTED_FILE_EXTENSIONS>;

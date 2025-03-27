@@ -19,20 +19,35 @@
 
 import swaggerJSDoc from 'swagger-jsdoc';
 
+import { env } from '@/common/envConfig.js';
+
 import { name, version } from './manifest.js';
 
-const swaggerDefinition = {
-	openapi: '3.0.0',
+const swaggerDefinition: swaggerJSDoc.OAS3Definition = {
+	openapi: '3.0.1',
 	info: {
 		title: name,
 		version,
 	},
+	...(env.AUTH_ENABLED
+		? {
+				security: [
+					{
+						bearerAuth: [],
+					},
+				],
+			}
+		: {}),
 };
 
-const options = {
+const options: swaggerJSDoc.OAS3Options = {
 	swaggerDefinition,
 	// Paths to files containing OpenAPI definitions
-	apis: ['./src/routes/*.ts', './src/api-docs/*.yml'],
+	apis: [
+		'./src/routes/*.ts',
+		'./src/api-docs/*.yml',
+		...(env.AUTH_ENABLED ? ['./src/api-docs/security/bearer.yml'] : []),
+	],
 };
 
 export default swaggerJSDoc(options);

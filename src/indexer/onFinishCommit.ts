@@ -22,7 +22,7 @@ import { setTimeout } from 'node:timers/promises';
 
 import type { ResultOnCommit, SubmittedDataResponse } from '@overture-stack/lyric';
 
-import { logger } from '@/common/logger.js';
+import logger from '@/common/logger.js';
 
 import { env } from '../common/envConfig.js';
 
@@ -56,7 +56,9 @@ export const onFinishCommitCallback = (resultOnCommit: ResultOnCommit) => {
 	const { categoryId, organization, data } = resultOnCommit;
 
 	// Return if indexer is disabled
-	if (!env.INDEXER_ENABLED || !env.INDEXER_SERVER_URL) return;
+	if (!env.INDEXER_ENABLED || !env.INDEXER_SERVER_URL) {
+		return;
+	}
 
 	const mapping = findCategoryMapping(env.INDEXER_MAPPING, categoryId.toString());
 

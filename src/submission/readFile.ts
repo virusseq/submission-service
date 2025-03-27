@@ -17,10 +17,11 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { Schema } from '@overture-stack/lyric';
 import { parse as csvParse } from 'csv-parse';
 import firstline from 'firstline';
 import fs from 'fs';
+
+import type { Schema } from '@overture-stack/lyric';
 
 import { getSeparatorCharacter } from './format.js';
 

@@ -17,7 +17,7 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import express, { Router } from 'express';
+import express, { type Router } from 'express';
 import { serve, setup } from 'swagger-ui-express';
 
 import swaggerDoc from '@/common/swaggerDoc.js';

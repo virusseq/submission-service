@@ -17,18 +17,31 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { LoggerOptions, pino } from 'pino';
+import { type Logger, type LoggerOptions, pino } from 'pino';
 
-import { env } from './envConfig.js';
+// Singleton logger instance
+let loggerInstance: Logger;
 
-const pinoConfig = {
-	level: env.LOG_LEVEL,
+const pinoConfig: LoggerOptions = {
+	level: process.env.LOG_LEVEL || 'info',
 	formatters: {
 		level: (label) => {
 			return { level: label.toUpperCase() };
 		},
 	},
 	timestamp: pino.stdTimeFunctions.isoTime,
-} as LoggerOptions;
+};
 
-export const logger = pino(pinoConfig);
+const getLogger = (): Logger => {
+	if (!loggerInstance) {
+		loggerInstance = pino(pinoConfig);
+	}
+	return loggerInstance;
+};
+
+/**
+ * The singleton logger instance that is initialized once and can be used
+ * throughout the application.
+ */
+const logger = getLogger();
+export default logger;

@@ -17,18 +17,18 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { errorHandler } from '@overture-stack/lyric';
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
+
+import { errorHandler } from '@overture-stack/lyric';
 
 import { env } from '@/common/envConfig.js';
 import { lyricProvider } from '@/core/provider.js';
 import { requestLogger } from '@/middleware/requestLogger.js';
 import { healthCheckRouter } from '@/routers/healthCheck.js';
 import { openAPIRouter } from '@/routers/openApi.js';
-
-import { submissionRouter } from './routers/submission.js';
+import { submissionRouter } from '@/routers/submission.js';
 
 const app = express();
 

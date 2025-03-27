@@ -17,7 +17,7 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 
 const health = (req: Request, res: Response) => {
 	const healthcheck = {

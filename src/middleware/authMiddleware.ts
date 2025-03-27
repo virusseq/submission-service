@@ -17,31 +17,44 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import express, { type Router } from 'express';
-import multer from 'multer';
+import type { NextFunction, Request, Response } from 'express';
 
-import { errorHandler } from '@overture-stack/lyric';
+import { type UserSession } from '@overture-stack/lyric';
 
 import { env } from '@/common/envConfig.js';
-import { editData } from '@/controllers/submission/editData.js';
-import { submit } from '@/controllers/submission/submit.js';
-import { lyricProvider } from '@/core/provider.js';
-import { authMiddleware } from '@/middleware/authMiddleware.js';
-import { getSizeInBytes } from '@/submission/format.js';
 
-const fileSizeLimit = getSizeInBytes(env.SERVER_UPLOAD_LIMIT);
-const upload = multer({ dest: '/tmp', limits: { fileSize: fileSizeLimit } });
+import { verifyToken } from './verifyEgoJwt.js';
 
-export const submissionRouter: Router = (() => {
-	const router = express.Router();
+// Extends the Request interface to include a custom `user` object
+declare module 'express-serve-static-core' {
+	interface Request {
+		user?: UserSession;
+	}
+}
 
-	router.use(authMiddleware);
+/**
+ * Middleware to handle authentication using JWT token if enabled
+ * @param req
+ * @param res
+ * @param next
+ * @returns
+ */
+export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+	if (!env.AUTH_ENABLED) {
+		return next();
+	}
 
-	router.post('/category/:categoryId/data', upload.array('files'), submit);
-	router.put('/category/:categoryId/data', upload.array('files'), editData);
+	try {
+		const authResult = verifyToken(req);
 
-	router.use('', lyricProvider.routers.submission);
-	router.use(errorHandler);
+		if (authResult.errorCode) {
+			return res.status(authResult.errorCode).json({ message: authResult.errorMessage });
+		}
 
-	return router;
-})();
+		req.user = authResult.user;
+		return next();
+	} catch (error) {
+		console.error(`Error verifying token ${error}`);
+		return res.status(403).json({ message: 'Forbidden: Invalid token' });
+	}
+};
