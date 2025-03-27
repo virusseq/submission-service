@@ -17,8 +17,8 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { RequestHandler } from 'express-serve-static-core';
-import { ZodError, ZodSchema } from 'zod';
+import type { RequestHandler } from 'express-serve-static-core';
+import { ZodError, type ZodSchema } from 'zod';
 
 export declare type RequestValidation<TBody, TQuery, TParams> = {
 	body?: ZodSchema<TBody>;

@@ -17,7 +17,7 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { AppConfig, provider } from '@overture-stack/lyric';
+import { type AppConfig, provider } from '@overture-stack/lyric';
 
 import { env } from '@/common/envConfig.js';
 import { onFinishCommitCallback } from '@/indexer/onFinishCommit.js';

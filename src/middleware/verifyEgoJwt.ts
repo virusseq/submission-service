@@ -17,7 +17,7 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { Request } from 'express';
+import type { Request } from 'express';
 import jwt from 'jsonwebtoken';
 import { jwtDecode } from 'jwt-decode';
 
