@@ -9,6 +9,8 @@ This service acts as a wrapper around the [@overture-stack/lyric](https://github
 - [Overture Maestro](https://github.com/overture-stack/maestro) (Optional) Organize data repositories into an Elasticsearch index
 - [Postgres](https://www.postgresql.org/) Database for data storage
 
+For development purpose, a `docker-compose.yml` is provided to spin up required services.
+
 ## Getting started
 
 To set up the project locally and run it in development mode, follow these steps:
