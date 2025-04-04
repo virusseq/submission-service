@@ -83,15 +83,14 @@ const extractTokenFromHeader = (req: Request): string | undefined => {
  * @param scope
  * @returns
  */
-const findWriteOrganizations = (scope: string[]): string[] => {
-	const suffix = env.AUTH_PERMISSION_SUFFIX_WRITE_ORG?.trim();
+const findWriteOrganizations = (scopes: string[]): string[] => {
+	const prefix = env.AUTH_PERMISSION_PREFIX_ORG?.trim();
+	const suffix = env.AUTH_PERMISSION_SUFFIX_ORG?.trim();
 
-	// Return empty array if suffix is empty or undefined
-	if (!suffix) {
-		return [];
-	}
-
-	return scope.filter((org) => org.endsWith(suffix));
+	return scopes
+		.filter((scope) => scope.startsWith(prefix))
+		.filter((scope) => scope.endsWith(suffix))
+		.map((scope) => scope.slice(prefix.length, scope.length - suffix.length));
 };
 
 /**
