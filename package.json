@@ -6,7 +6,7 @@
   "scripts": {
     "\n==================  Build  ==================": "",
     "build:compile": "rimraf dist && tsc",
-    "build:copy": "copyfiles src/api-docs/**/*.yml dist/",
+    "build:copy": "copyfiles src/api-docs/*.yml src/api-docs/**/*.yml dist/",
     "build:all": "pnpm build:compile && pnpm build:copy",
     "\n=============  Dev environment  =============": "",
     "lint": "eslint .",
