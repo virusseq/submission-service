@@ -19,7 +19,7 @@
 
 import { BATCH_ERROR_TYPE, type BatchError, type Schema } from '@overture-stack/lyric';
 
-import { logger } from '@/common/logger.js';
+import logger from '@/common/logger.js';
 
 import { getSeparatorCharacter } from './format.js';
 import { readHeaders } from './readFile.js';

@@ -4,9 +4,12 @@ This service acts as a wrapper around the [@overture-stack/lyric](https://github
 
 ## Service Dependencies
 
+- [Overture EGO](https://github.com/overture-stack/ego) (Optional) Authentication and Authorization Microservice
 - [Overture Lectern](https://github.com/overture-stack/lectern) Dictionary Management and validation Service
-- [Overture Maestro](https://github.com/overture-stack/maestro) Organize data repositories into an Elasticsearch index
+- [Overture Maestro](https://github.com/overture-stack/maestro) (Optional) Organize data repositories into an Elasticsearch index
 - [Postgres](https://www.postgresql.org/) Database for data storage
+
+For development purpose, a `docker-compose.yml` is provided to spin up required services.
 
 ## Getting started
 
@@ -39,7 +42,7 @@ The application requires specific environment variables to be configured. Follow
 Run the following command to compile the project:
 
 ```
-pnpm run build:compile
+pnpm run build:all
 ```
 
 4. Start the Service in Development Mode

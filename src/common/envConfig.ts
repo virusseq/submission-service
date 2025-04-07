@@ -20,8 +20,12 @@
 import dotenv from 'dotenv';
 import { z } from 'zod';
 
+import logger from './logger.js';
+
 const NodeEnvOptions = ['development', 'production'] as const;
 const LogLeveOptions = ['error', 'warn', 'info', 'debug'] as const;
+
+const booleanString = z.string().transform((v) => ['true', '1'].includes(v.toLowerCase()));
 
 dotenv.config();
 
@@ -33,45 +37,59 @@ const indexerCategoriesMappingSchema = z.string().regex(/^(\w+:\w+)(,\w+:\w+)*$/
 const envSchema = z
 	.object({
 		ALLOWED_ORIGINS: z.string().optional(),
-		AUDIT_ENABLED: z.coerce.boolean().default(true),
+		AUDIT_ENABLED: booleanString.default('true'),
+		AUTH_ENABLED: booleanString.default('true'),
+		AUTH_PERMISSION_ADMIN: z.string().default(''),
+		AUTH_PERMISSION_SUFFIX_ORG: z.string().default(''),
+		AUTH_PERMISSION_PREFIX_ORG: z.string().default(''),
+		AUTH_PUBLIC_KEY: z.string().default(''),
 		DB_HOST: z.string(),
 		DB_NAME: z.string(),
 		DB_PASSWORD: z.string(),
 		DB_PORT: z.coerce.number().min(100),
 		DB_USER: z.string(),
-		ID_USELOCAL: z.coerce.boolean().default(true),
+		ID_USELOCAL: booleanString.default('true'),
 		ID_CUSTOMALPHABET: z.string().default('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'),
 		ID_CUSTOMSIZE: z.coerce.number().default(21),
-		INDEXER_ENABLED: z.coerce.boolean().default(true),
+		INDEXER_ENABLED: booleanString.default('true'),
 		INDEXER_SERVER_URL: z.string().url().optional(),
 		INDEXER_MAPPING: indexerCategoriesMappingSchema.optional(),
 		LECTERN_URL: z.string().url(),
 		LOG_LEVEL: z.enum(LogLeveOptions).default('info'),
 		NODE_ENV: z.enum(NodeEnvOptions).default('development'),
-		PLURALIZE_SCHEMAS_ENABLED: z.coerce.boolean().default(true),
+		PLURALIZE_SCHEMAS_ENABLED: booleanString.default('true'),
 		SERVER_PORT: z.coerce.number().min(100).default(3000),
 		SERVER_UPLOAD_LIMIT: z.string().default('10mb'),
 	})
-	.refine(
-		(data) => {
-			// If INDEXER_ENABLED is true, INDEXER_SERVER_URL and INDEXER_MAPPING must not be empty
-			if (data.INDEXER_ENABLED) {
-				return data.INDEXER_SERVER_URL !== '' && data.INDEXER_MAPPING !== '';
-			}
-			// If INDEXER_ENABLED is false, both fields can be omitted
-			return true;
-		},
-		{
-			message:
-				'When INDEXER_ENABLED is true, both INDEXER_SERVER_URL and INDEXER_MAPPING must be provided and cannot be empty.',
-			path: ['INDEXER_SERVER_URL', 'INDEXER_MAPPING'],
-		},
-	);
+	.superRefine((data, ctx) => {
+		if (data.AUTH_ENABLED === true && data.AUTH_PUBLIC_KEY.trim() === '') {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ['AUTH_PUBLIC_KEY'],
+				message: 'AUTH_PUBLIC_KEY is required when AUTH_ENABLED is true',
+			});
+		}
+
+		if (
+			data.INDEXER_ENABLED === true &&
+			(!data.INDEXER_SERVER_URL ||
+				data.INDEXER_SERVER_URL.trim() === '' ||
+				!data.INDEXER_MAPPING ||
+				data.INDEXER_MAPPING.trim() === '')
+		) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ['INDEXER_SERVER_URL', 'INDEXER_MAPPING'],
+				message:
+					'When INDEXER_ENABLED is true, both INDEXER_SERVER_URL and INDEXER_MAPPING must be provided and cannot be empty.',
+			});
+		}
+	});
 
 const envParsed = envSchema.safeParse(process.env);
 
 if (!envParsed.success) {
-	console.error(envParsed.error.issues);
+	logger.error(envParsed.error.issues);
 	throw new Error('There is an error with the server environment variables.');
 }
 
