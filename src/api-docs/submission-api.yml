@@ -34,9 +34,6 @@
           application/json:
             schema:
               $ref: '#/components/schemas/SubmissionResult'
-
-      401:
-        $ref: '#/components/responses/UnauthorizedError'
       404:
         $ref: '#/components/responses/NotFound'
       500:
@@ -64,6 +61,8 @@
         $ref: '#/components/responses/BadRequest'
       401:
         $ref: '#/components/responses/UnauthorizedError'
+      403:
+        $ref: '#/components/responses/Forbidden'
       404:
         $ref: '#/components/responses/NotFound'
       409:
@@ -113,6 +112,8 @@
         $ref: '#/components/responses/BadRequest'
       401:
         $ref: '#/components/responses/UnauthorizedError'
+      403:
+        $ref: '#/components/responses/Forbidden'
       404:
         $ref: '#/components/responses/NotFound'
       409:
@@ -140,9 +141,6 @@
           application/json:
             schema:
               $ref: '#/components/schemas/SubmissionsSummaryResult'
-
-      401:
-        $ref: '#/components/responses/UnauthorizedError'
       404:
         $ref: '#/components/responses/NotFound'
       500:
@@ -172,6 +170,8 @@
         $ref: '#/components/responses/BadRequest'
       401:
         $ref: '#/components/responses/UnauthorizedError'
+      403:
+        $ref: '#/components/responses/Forbidden'
       409:
         $ref: '#/components/responses/StatusConflict'
       500:
@@ -215,6 +215,8 @@
         $ref: '#/components/responses/BadRequest'
       401:
         $ref: '#/components/responses/UnauthorizedError'
+      403:
+        $ref: '#/components/responses/Forbidden'
       500:
         $ref: '#/components/responses/ServerError'
       503:
@@ -254,6 +256,8 @@
         $ref: '#/components/responses/BadRequest'
       401:
         $ref: '#/components/responses/UnauthorizedError'
+      403:
+        $ref: '#/components/responses/Forbidden'
       500:
         $ref: '#/components/responses/ServerError'
       503:
@@ -283,6 +287,8 @@
         $ref: '#/components/responses/BadRequest'
       401:
         $ref: '#/components/responses/UnauthorizedError'
+      403:
+        $ref: '#/components/responses/Forbidden'
       404:
         $ref: '#/components/responses/NotFound'
       409:

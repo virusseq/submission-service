@@ -23,8 +23,7 @@ import { z } from 'zod';
 
 import { BATCH_ERROR_TYPE, type BatchError } from '@overture-stack/lyric';
 
-import { hasUserWriteAccess } from '@/common/auth.js';
-import { env } from '@/common/envConfig.js';
+import { hasUserWriteAccess, shouldBypassAuth } from '@/common/auth.js';
 import logger from '@/common/logger.js';
 import { lyricProvider } from '@/core/provider.js';
 import { type RequestValidation, validateRequest } from '@/middleware/requestValidation.js';
@@ -62,7 +61,7 @@ export const editData = validateRequest(editDataRequestSchema, async (req, res) 
 		` files: '${files?.map((f) => f.originalname)}'`,
 	);
 
-	if (env.AUTH_ENABLED && !hasUserWriteAccess(organization, user)) {
+	if (!shouldBypassAuth(req.method) && !hasUserWriteAccess(organization, user)) {
 		throw new lyricProvider.utils.errors.Forbidden(`User is not authorized to edit data from '${organization}'`);
 	}
 
@@ -79,7 +78,7 @@ export const editData = validateRequest(editDataRequestSchema, async (req, res) 
 		throw new lyricProvider.utils.errors.BadRequest(`Dictionary in category '${categoryId}' not found`);
 	}
 
-	const userName = user?.username || '';
+	const username = user?.username || '';
 
 	const fileErrors: BatchError[] = [];
 	let submissionId: number | undefined;
@@ -112,7 +111,7 @@ export const editData = validateRequest(editDataRequestSchema, async (req, res) 
 				entityName,
 				categoryId,
 				organization,
-				userName,
+				username,
 			});
 
 			submissionId = uploadResult.submissionId;

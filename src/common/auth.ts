@@ -19,6 +19,32 @@
 
 import type { UserSession } from '@overture-stack/lyric';
 
+import { env } from './envConfig.js';
+
+/**
+ * Determines whether the authentication check should be bypassed based on configuration and request method.
+ * @param requestMethod
+ * @returns
+ */
+export const shouldBypassAuth = (requestMethod: string) => {
+	if (!env.AUTH_ENABLED) {
+		// bypass auth if it's globally disabled
+		return true;
+	}
+
+	// Skip auth if configured protectedMethods is a valid array and does not include the request method
+	const configuredProtectedMethods = env.AUTH_PROTECT_METHODS;
+	if (
+		Array.isArray(configuredProtectedMethods) &&
+		!configuredProtectedMethods.some((method) => method === requestMethod)
+	) {
+		return true;
+	}
+
+	// Default: required auth
+	return false;
+};
+
 /**
  * checks if a user has write access to a specific organization.
  * @param organization

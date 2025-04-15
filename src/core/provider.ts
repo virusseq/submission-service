@@ -27,6 +27,7 @@ const appConfig: AppConfig = {
 	auth: {
 		enabled: env.AUTH_ENABLED,
 		customAuthHandler: verifyToken,
+		protectedMethods: env.AUTH_PROTECT_METHODS,
 	},
 	db: {
 		host: env.DB_HOST,
