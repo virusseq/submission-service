@@ -21,7 +21,7 @@ import type { NextFunction, Request, Response } from 'express';
 
 import { type UserSession } from '@overture-stack/lyric';
 
-import { env } from '@/common/envConfig.js';
+import { shouldBypassAuth } from '@/common/auth.js';
 
 import { verifyToken } from './verifyEgoJwt.js';
 
@@ -40,7 +40,7 @@ declare module 'express-serve-static-core' {
  * @returns
  */
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-	if (!env.AUTH_ENABLED) {
+	if (shouldBypassAuth(req.method)) {
 		return next();
 	}
 

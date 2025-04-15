@@ -25,7 +25,19 @@ import logger from './logger.js';
 const NodeEnvOptions = ['development', 'production'] as const;
 const LogLeveOptions = ['error', 'warn', 'info', 'debug'] as const;
 
+export const HttpMethods = ['GET', 'POST', 'PUT', 'DELETE'] as const;
+export type HttpMethod = (typeof HttpMethods)[number];
+
+const defaultModificationMethods: HttpMethod[] = ['POST', 'PUT', 'DELETE'] as const;
+
 const booleanString = z.string().transform((v) => ['true', '1'].includes(v.toLowerCase()));
+
+const parseHttpMethods = (value: string) => {
+	return value
+		.split(',')
+		.filter((v) => v.trim() !== '')
+		.map((v) => v.trim().toUpperCase());
+};
 
 dotenv.config();
 
@@ -39,6 +51,11 @@ const envSchema = z
 		ALLOWED_ORIGINS: z.string().optional(),
 		AUDIT_ENABLED: booleanString.default('true'),
 		AUTH_ENABLED: booleanString.default('true'),
+		AUTH_PROTECT_METHODS: z
+			.string()
+			.default(defaultModificationMethods.join(','))
+			.transform(parseHttpMethods)
+			.pipe(z.array(z.enum(HttpMethods))),
 		AUTH_PERMISSION_ADMIN: z.string().default(''),
 		AUTH_PERMISSION_SUFFIX_ORG: z.string().default(''),
 		AUTH_PERMISSION_PREFIX_ORG: z.string().default(''),
