@@ -17,124 +17,158 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { ParamsDictionary } from 'express-serve-static-core';
-import type { ParsedQs } from 'qs';
-import { z } from 'zod';
+import { type Response } from 'express';
 
-import { BATCH_ERROR_TYPE, type BatchError } from '@overture-stack/lyric';
+import { BATCH_ERROR_TYPE, type BatchError, CREATE_SUBMISSION_STATUS } from '@overture-stack/lyric';
 
 import { hasUserWriteAccess, shouldBypassAuth } from '@/common/auth.js';
 import logger from '@/common/logger.js';
 import { lyricProvider } from '@/core/provider.js';
-import { type RequestValidation, validateRequest } from '@/middleware/requestValidation.js';
-import { prevalidateNewDataFile } from '@/submission/fileValidation.js';
+import { validateRequest } from '@/middleware/requestValidation.js';
+import { prevalidateNewDataFile, validateSequencingFilesMetadata } from '@/submission/fileValidation.js';
 import { parseFileToRecords } from '@/submission/readFile.js';
+import { type ErrorResponse, submitRequestSchema, type SubmitResponse } from '@/submission/submitRequest.js';
+import { parseSequencingMetadata } from '@/utils/file.js';
 
-interface SubmitRequestPathParams extends ParamsDictionary {
-	categoryId: string;
-}
+export const submit = validateRequest(
+	submitRequestSchema,
+	async (req, res: Response<SubmitResponse | ErrorResponse>) => {
+		const categoryId = Number(req.params.categoryId);
+		const entityName = req.body.entityName;
+		const submissionFile = req.file;
+		const organization = req.body.organization;
+		const sequencingMetadataValues = parseSequencingMetadata(req.body.sequencingMetadata || '');
+		const user = req.user;
 
-export const submitRequestSchema: RequestValidation<{ organization: string }, ParsedQs, SubmitRequestPathParams> = {
-	body: z.object({
-		organization: z.string(),
-	}),
-	pathParams: z.object({
-		categoryId: z.string(),
-	}),
-};
-
-const CREATE_SUBMISSION_STATUS = {
-	PROCESSING: 'PROCESSING',
-	INVALID_SUBMISSION: 'INVALID_SUBMISSION',
-	PARTIAL_SUBMISSION: 'PARTIAL_SUBMISSION',
-} as const;
-
-export const submit = validateRequest(submitRequestSchema, async (req, res) => {
-	const categoryId = Number(req.params.categoryId);
-	const files = Array.isArray(req.files) ? req.files : [];
-	const organization = req.body.organization;
-	const user = req.user;
-
-	logger.info(
-		`Upload Submission Request: categoryId '${categoryId}'`,
-		` organization '${organization}'`,
-		` files: '${files?.map((f) => f.originalname)}'`,
-	);
-
-	if (!shouldBypassAuth(req.method) && !hasUserWriteAccess(organization, user)) {
-		return res.status(403).json({
-			error: 'Forbidden',
-			message: `User is not authorized to submit data to '${organization}'`,
-		});
-	}
-
-	if (!files || files.length == 0) {
-		throw new lyricProvider.utils.errors.BadRequest(
-			'The "files" parameter is missing or empty. Please include files in the request for processing.',
+		logger.info(
+			`Upload Submission Request: categoryId '${categoryId}'`,
+			` entityName '${entityName}'`,
+			` submissionFile: '${submissionFile?.originalname}`,
+			` organization '${organization}'`,
 		);
-	}
 
-	// get the current dictionary
+		// Authorization check
+		if (!shouldBypassAuth(req.method) && !hasUserWriteAccess(organization, user)) {
+			return res.status(403).json({
+				error: 'Forbidden',
+				message: `User is not authorized to submit data to '${organization}'`,
+			});
+		}
+
+		if (!submissionFile) {
+			throw new lyricProvider.utils.errors.BadRequest(
+				'The "submissionFile" parameter is missing or empty. Please include a file in the request for processing.',
+			);
+		}
+
+		// Get the current dictionary and validate entity name
+		const currentDictionary = await getDictionary(categoryId);
+		const schema = validateEntityName(currentDictionary, entityName);
+
+		const username = user?.username || '';
+
+		const { file: prevalidatedFile, error } = await prevalidateNewDataFile(submissionFile, schema);
+		if (error) {
+			return respondWithInvalidSubmission(res, undefined, [error]);
+		}
+
+		const extractedData = await parseFileToRecords(prevalidatedFile, schema);
+
+		// Validate if sequencing metadata is provided
+		if (sequencingMetadataValues) {
+			const sequencingMetadataErrors = validateSequencingFilesMetadata(
+				sequencingMetadataValues,
+				extractedData,
+				submissionFile.originalname,
+			);
+			if (sequencingMetadataErrors) {
+				return respondWithInvalidSubmission(res, undefined, sequencingMetadataErrors);
+			}
+		}
+
+		// Submit data using Lyric service
+		const uploadResult = await lyricProvider.services.submission.submit({
+			records: extractedData,
+			entityName,
+			categoryId,
+			organization,
+			username,
+		});
+
+		if (uploadResult.status === CREATE_SUBMISSION_STATUS.PROCESSING && uploadResult.submissionId) {
+			return responseWithProcessingStatus(res, uploadResult.submissionId);
+		} else {
+			return respondWithInvalidSubmission(res, uploadResult.submissionId, [
+				{
+					message: uploadResult.description,
+					type: BATCH_ERROR_TYPE.INCORRECT_SECTION,
+					batchName: submissionFile.originalname,
+				},
+			]);
+		}
+	},
+);
+
+/**
+ * Retrieves the dictionary for the given category ID.
+ * @param categoryId - The ID of the category to retrieve the dictionary for.
+ * @returns The current dictionary for the specified category ID.
+ */
+const getDictionary = async (categoryId: number) => {
 	const currentDictionary = await lyricProvider.services.dictionary.getActiveDictionaryByCategory(categoryId);
-
 	if (!currentDictionary) {
 		throw new lyricProvider.utils.errors.BadRequest(`Dictionary in category '${categoryId}' not found`);
 	}
+	return currentDictionary;
+};
 
-	const username = user?.username || '';
-
-	const fileErrors: BatchError[] = [];
-	let submissionId: number | undefined;
-	const entityList: string[] = [];
-
-	for (const file of files) {
-		try {
-			// // validate if entity name is present in the dictionary
-			const entityName = file.originalname.split('.')[0]?.toLowerCase();
-			const schema = currentDictionary.dictionary.find((schema) => schema.name.toLowerCase() === entityName);
-			if (!schema || !entityName) {
-				fileErrors.push({
-					type: BATCH_ERROR_TYPE.INVALID_FILE_NAME,
-					message: `Invalid entity name for submission`,
-					batchName: file.originalname,
-				});
-				continue;
-			}
-
-			const { file: prevalidatedFile, error } = await prevalidateNewDataFile(file, schema);
-			if (error) {
-				fileErrors.push(error);
-				continue;
-			}
-
-			const extractedData = await parseFileToRecords(prevalidatedFile, schema);
-
-			const uploadResult = await lyricProvider.services.submission.submit({
-				records: extractedData,
-				entityName,
-				categoryId,
-				organization,
-				username,
-			});
-
-			submissionId = uploadResult.submissionId;
-			entityList.push(entityName);
-		} catch (error) {
-			logger.error(`Error processing file`, error);
-		}
+/**
+ * Validates the entity name against the dictionary
+ * @param dictionary - Dictionary object containing the schemas
+ * @param entityName - Request parameter for the entity name
+ * @returns The schema object if valid, otherwise throws an error
+ * @throws BadRequest if the entity name is invalid
+ */
+const validateEntityName = (dictionary: any, entityName: string) => {
+	const schema = dictionary.dictionary.find((schema: any) => schema.name.toLowerCase() === entityName.toLowerCase());
+	if (!schema) {
+		throw new lyricProvider.utils.errors.BadRequest(`Invalid entity name for submission`);
 	}
+	return schema;
+};
 
-	let status: string = CREATE_SUBMISSION_STATUS.PROCESSING;
-	if (entityList.length === 0) {
-		logger.info('Unable to process the submission');
-		status = CREATE_SUBMISSION_STATUS.INVALID_SUBMISSION;
-	} else if (fileErrors.length > 0) {
-		logger.info('Submission processed with some errors');
-		status = CREATE_SUBMISSION_STATUS.PARTIAL_SUBMISSION;
-	} else {
-		logger.info(`Submission processed successfully`);
-	}
+/**
+ * Responds with an invalid submission status.
+ * @param res - The response object
+ * @param submissionId - The submission ID
+ * @param errors - The array of batch errors
+ * @returns The response object with the invalid submission status
+ */
+const respondWithInvalidSubmission = (
+	res: Response<SubmitResponse>,
+	submissionId: number | undefined,
+	errors: BatchError[],
+): Response<SubmitResponse> => {
+	return res.status(200).send({
+		submissionId,
+		status: CREATE_SUBMISSION_STATUS.INVALID_SUBMISSION,
+		batchErrors: errors,
+	});
+};
 
-	// This response provides the details of file Submission
-	return res.status(200).send({ submissionId, status, batchErrors: fileErrors, inProcessEntities: entityList });
-});
+/**
+ * Response with a processing status
+ * @param res - The response object
+ * @param submissionId - The submission ID
+ * @returns The response object with the processing status
+ */
+const responseWithProcessingStatus = (
+	res: Response<SubmitResponse>,
+	submissionId: number,
+): Response<SubmitResponse> => {
+	return res.status(200).send({
+		submissionId,
+		status: CREATE_SUBMISSION_STATUS.PROCESSING,
+		batchErrors: [],
+	});
+};
