@@ -194,15 +194,40 @@
           schema:
             type: object
             properties:
-              files:
-                type: array
-                items:
-                  type: string
-                  format: binary
+              submissionFile:
+                type: string
+                format: binary
+                description: 'The main file containing data records for submission (supported formats: CSV, TSV)'
+              entityName:
+                type: string
+                description: The name of the entity the records belong to
               organization:
                 type: string
+                description: The organization submitting the data
+              sequencingMetadata:
+                type: array
+                description: Metadata for sequencing files
+                items:
+                  type: object
+                  properties:
+                    fileName:
+                      type: string
+                      description: The name of the file
+                    fileSize:
+                      type: string
+                      description: The size of the file in bytes
+                    fileMd5sum:
+                      type: string
+                      description: The MD5 checksum of the file
+                    fileAccess:
+                      type: string
+                      description: The access level of the file (e.g., 'open', 'restricted')
+                    fileType:
+                      type: string
+                      description: The type of the file
             required:
-              - files
+              - submissionFile
+              - entityName
               - organization
     responses:
       200:
