@@ -19,7 +19,10 @@
 
 import { BATCH_ERROR_TYPE, type BatchError, type Schema } from '@overture-stack/lyric';
 
+import { env } from '@/common/envConfig.js';
 import logger from '@/common/logger.js';
+import type { SequencingMetadataType } from '@/submission/submitRequest.js';
+import { getIdentifierFromFileName } from '@/utils/file.js';
 
 import { getSeparatorCharacter } from './format.js';
 import { readHeaders } from './readFile.js';
@@ -145,4 +148,69 @@ export const prevalidateEditFile = async (
 		};
 	}
 	return { file };
+};
+
+export interface SequencingValidationResult {
+	errors: BatchError[];
+	validFiles: SequencingMetadataType[];
+}
+
+/**
+ * Validates sequencing files metadata against the extracted data.
+ * It checks if the file names in the additional metadata match the file identifier in the extracted data.
+ * @param sequencingFilesMetadata - Additional metadata for sequencing files
+ * @param clinicalData - parsed clinical data from the main file
+ * @param batchName - The name of the main file being processed
+ * @returns An array of BatchError objects if there are mismatches, otherwise null
+ */
+export const validateSequencingFilesMetadata = (
+	sequencingFilesMetadata: SequencingMetadataType[],
+	clinicalData: Record<string, string>[],
+	batchName: string,
+): SequencingValidationResult => {
+	const result: SequencingValidationResult = {
+		errors: [],
+		validFiles: [],
+	};
+
+	const filenameIdentifierColumn = env.SEQUENCING_FILENAME_IDENTIFIER_COLUMN;
+
+	if (sequencingFilesMetadata.length === 0 || !filenameIdentifierColumn) {
+		return result;
+	}
+
+	// Parse file names to extract identifiers
+	const parsedFiles = sequencingFilesMetadata.map((item) => ({
+		...item,
+		identifier: getIdentifierFromFileName(item.fileName),
+	}));
+	const unmatchedMetadata = [...parsedFiles];
+
+	// Collect invalid file name formats
+	const invalidFiles = unmatchedMetadata.filter((file) => !file.identifier);
+	if (invalidFiles.length > 0) {
+		result.errors = invalidFiles.map((file) => ({
+			type: BATCH_ERROR_TYPE.INCORRECT_SECTION,
+			message: `Invalid sequencing file name '${file.fileName}'`,
+			batchName,
+		}));
+		return result;
+	}
+
+	const clinicalIdentifiers = new Set(clinicalData.map((record) => record[filenameIdentifierColumn]).filter(Boolean));
+
+	for (const file of parsedFiles) {
+		const { identifier, ...fileProps } = file;
+		if (identifier && clinicalIdentifiers.has(identifier)) {
+			result.validFiles.push(fileProps);
+		} else {
+			result.errors.push({
+				type: BATCH_ERROR_TYPE.INCORRECT_SECTION,
+				message: `Sequencing file name '${file.fileName}' does not match any '${filenameIdentifierColumn}' value in submission file`,
+				batchName,
+			});
+		}
+	}
+
+	return result;
 };

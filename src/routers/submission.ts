@@ -35,7 +35,7 @@ const upload = multer({ dest: '/tmp', limits: { fileSize: fileSizeLimit } });
 export const submissionRouter: Router = (() => {
 	const router = express.Router();
 
-	router.post('/category/:categoryId/data', authMiddleware, upload.array('files'), submit);
+	router.post('/category/:categoryId/data', authMiddleware, upload.single('submissionFile'), submit);
 	router.put('/category/:categoryId/data', authMiddleware, upload.array('files'), editData);
 
 	router.use('', lyricProvider.routers.submission);
