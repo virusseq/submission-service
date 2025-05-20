@@ -22,13 +22,18 @@ import { type Response } from 'express';
 import { BATCH_ERROR_TYPE, type BatchError, CREATE_SUBMISSION_STATUS } from '@overture-stack/lyric';
 
 import { hasUserWriteAccess, shouldBypassAuth } from '@/common/auth.js';
+import { env } from '@/common/envConfig.js';
 import logger from '@/common/logger.js';
 import { lyricProvider } from '@/core/provider.js';
 import { validateRequest } from '@/middleware/requestValidation.js';
-import { prevalidateNewDataFile, validateSequencingFilesMetadata } from '@/submission/fileValidation.js';
+import { buildSquencingFilesMetadata, prevalidateNewDataFile } from '@/submission/fileValidation.js';
+import { convertRecordToPayload } from '@/submission/populateTemplate.js';
 import { parseFileToRecords } from '@/submission/readFile.js';
+import { submit as songSubmit } from '@/submission/song.js';
 import { type ErrorResponse, submitRequestSchema, type SubmitResponse } from '@/submission/submitRequest.js';
 import { parseSequencingMetadata } from '@/utils/file.js';
+
+const SEQUENCING_TEMPLATE = 'sequencing_payload.json';
 
 export const submit = validateRequest(
 	submitRequestSchema,
@@ -72,10 +77,11 @@ export const submit = validateRequest(
 		}
 
 		const extractedData = await parseFileToRecords(prevalidatedFile, schema);
+		const songSubmissionData = [];
 
 		// Validate if sequencing metadata is provided
 		if (sequencingMetadataValues) {
-			const { errors } = validateSequencingFilesMetadata(
+			const { errors, validFiles } = buildSquencingFilesMetadata(
 				sequencingMetadataValues,
 				extractedData,
 				submissionFile.originalname,
@@ -83,6 +89,18 @@ export const submit = validateRequest(
 			if (errors.length > 0) {
 				console.log(`error validation sequencing file: ${JSON.stringify(errors)}`);
 				return respondWithInvalidSubmission(res, undefined, errors);
+			}
+
+			// Convert sequencing metadata to payload
+			const fileNameIdentifier = env.SEQUENCING_SUBMISSION_FILENAME_IDENTIFIER_COLUMN;
+			if (fileNameIdentifier) {
+				for (const validFile of validFiles) {
+					// Song template for each sequencing file
+					const found = extractedData.find((record) => record[fileNameIdentifier] === validFile.identifier);
+					if (found) {
+						songSubmissionData.push(convertRecordToPayload(found, SEQUENCING_TEMPLATE));
+					}
+				}
 			}
 		}
 
@@ -96,6 +114,15 @@ export const submit = validateRequest(
 		});
 
 		if (uploadResult.status === CREATE_SUBMISSION_STATUS.PROCESSING && uploadResult.submissionId) {
+			// Song Submission
+			for (const record of songSubmissionData) {
+				const result = await songSubmit(record);
+				logger.info(
+					`Song submission result: ${result.status} - ${result.description}`,
+					` submissionId: ${uploadResult.submissionId}`,
+				);
+			}
+
 			return responseWithProcessingStatus(res, uploadResult.submissionId);
 		} else {
 			return respondWithInvalidSubmission(res, uploadResult.submissionId, [

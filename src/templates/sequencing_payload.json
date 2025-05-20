@@ -1,0 +1,10 @@
+{
+    "studyId": "{{organization}}",
+    "analysisType": {
+        "name": "wastewater_sequencing",
+        "version": 1
+    },
+    "samples": {
+        "specimenCollectorSampleId": "{{data.specimen_collector_sample_id}}"
+    }
+}
