@@ -29,15 +29,13 @@ import type { RequestValidation } from '@/middleware/requestValidation.js';
 interface SubmitRequestPathParams extends ParamsDictionary {
 	categoryId: string;
 }
-export const sequencingMetadataSchema = z.array(
-	z.object({
-		fileName: z.string(),
-		fileSize: z.coerce.number(),
-		fileMd5sum: z.string(),
-		fileAccess: z.string(),
-		fileType: z.string(),
-	}),
-);
+export const sequencingMetadataSchema = z.object({
+	fileName: z.string(),
+	fileSize: z.coerce.number(),
+	fileMd5sum: z.string(),
+	fileAccess: z.string(),
+	fileType: z.string(),
+});
 export type SequencingMetadataType = z.infer<typeof sequencingMetadataSchema>;
 
 export const submitRequestSchema: RequestValidation<
@@ -50,9 +48,14 @@ export const submitRequestSchema: RequestValidation<
 		organization: z.string(),
 		sequencingMetadata: z
 			.string()
+			.optional()
 			.superRefine((str, ctx) => {
 				let parsed = '';
 				try {
+					if (!str) {
+						// If the string is empty, we don't need to parse it
+						return;
+					}
 					parsed = JSON.parse(str);
 				} catch (e) {
 					logger.error('Invalid JSON format', e);
@@ -63,7 +66,7 @@ export const submitRequestSchema: RequestValidation<
 					return;
 				}
 
-				const result = sequencingMetadataSchema.safeParse(parsed);
+				const result = z.array(sequencingMetadataSchema).safeParse(parsed);
 				if (!result.success) {
 					logger.error(`zod error: ${result.error}`);
 					if (result.error instanceof ZodError) {

@@ -75,6 +75,7 @@ const envSchema = z
 		LOG_LEVEL: z.enum(LogLeveOptions).default('info'),
 		NODE_ENV: z.enum(NodeEnvOptions).default('development'),
 		PLURALIZE_SCHEMAS_ENABLED: booleanString.default('true'),
+		SEQUENCING_FILENAME_IDENTIFIER_COLUMN: z.string().optional(),
 		SERVER_PORT: z.coerce.number().min(100).default(3000),
 		SERVER_UPLOAD_LIMIT: z.string().default('10mb'),
 	})

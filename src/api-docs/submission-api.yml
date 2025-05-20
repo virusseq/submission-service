@@ -200,31 +200,16 @@
                 description: 'The main file containing data records for submission (supported formats: CSV, TSV)'
               entityName:
                 type: string
+                default: ''
                 description: The name of the entity the records belong to
               organization:
                 type: string
+                default: ''
                 description: The organization submitting the data
               sequencingMetadata:
-                type: array
-                description: Metadata for sequencing files
-                items:
-                  type: object
-                  properties:
-                    fileName:
-                      type: string
-                      description: The name of the file
-                    fileSize:
-                      type: string
-                      description: The size of the file in bytes
-                    fileMd5sum:
-                      type: string
-                      description: The MD5 checksum of the file
-                    fileAccess:
-                      type: string
-                      description: The access level of the file (e.g., 'open', 'restricted')
-                    fileType:
-                      type: string
-                      description: The type of the file
+                type: string
+                description: JSON string representing an array of Metadata for sequencing files. <br />(e.g. '[{"fileName":"SRS00001-ABC123.tar.xz","fileSize":"100", "fileMd5sum":"ABC123", "fileAccess":"open", "fileType":"FASTAQ"}]')
+                default: ''
             required:
               - submissionFile
               - entityName

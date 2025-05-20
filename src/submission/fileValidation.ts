@@ -19,9 +19,10 @@
 
 import { BATCH_ERROR_TYPE, type BatchError, type Schema } from '@overture-stack/lyric';
 
+import { env } from '@/common/envConfig.js';
 import logger from '@/common/logger.js';
 import type { SequencingMetadataType } from '@/submission/submitRequest.js';
-import { getSRAFromFileName } from '@/utils/file.js';
+import { getIdentifierFromFileName } from '@/utils/file.js';
 
 import { getSeparatorCharacter } from './format.js';
 import { readHeaders } from './readFile.js';
@@ -149,69 +150,67 @@ export const prevalidateEditFile = async (
 	return { file };
 };
 
+export interface SequencingValidationResult {
+	errors: BatchError[];
+	validFiles: SequencingMetadataType[];
+}
+
 /**
  * Validates sequencing files metadata against the extracted data.
- * It checks if the file names in the additional metadata match the SRA accessions in the extracted data.
- * @param SequencingFilesMetadata - Additional metadata for sequencing files
+ * It checks if the file names in the additional metadata match the file identifier in the extracted data.
+ * @param sequencingFilesMetadata - Additional metadata for sequencing files
  * @param clinicalData - parsed clinical data from the main file
  * @param batchName - The name of the main file being processed
  * @returns An array of BatchError objects if there are mismatches, otherwise null
  */
 export const validateSequencingFilesMetadata = (
-	SequencingFilesMetadata: SequencingMetadataType,
+	sequencingFilesMetadata: SequencingMetadataType[],
 	clinicalData: Record<string, string>[],
 	batchName: string,
-): BatchError[] | null => {
-	if (SequencingFilesMetadata.length === 0) {
-		return null;
+): SequencingValidationResult => {
+	const result: SequencingValidationResult = {
+		errors: [],
+		validFiles: [],
+	};
+
+	const filenameIdentifierColumn = env.SEQUENCING_FILENAME_IDENTIFIER_COLUMN;
+
+	if (sequencingFilesMetadata.length === 0 || !filenameIdentifierColumn) {
+		return result;
 	}
 
-	// check if additional file names are valid
-	for (const item of SequencingFilesMetadata) {
-		const sraName = getSRAFromFileName(item.fileName);
-		if (!sraName) {
-			return [
-				{
-					type: BATCH_ERROR_TYPE.INCORRECT_SECTION,
-					message: `Invalid additional file name '${item.fileName}'`,
-					batchName,
-				},
-			];
-		}
-	}
+	// Parse file names to extract identifiers
+	const parsedFiles = sequencingFilesMetadata.map((item) => ({
+		...item,
+		identifier: getIdentifierFromFileName(item.fileName),
+	}));
+	const unmatchedMetadata = [...parsedFiles];
 
-	const fileErrors: BatchError[] = [];
-	const unmatchedMetadata = [...SequencingFilesMetadata];
-
-	// Validate each record in the extracted data
-	for (const record of clinicalData) {
-		const sraAccession = record['SRA accession'];
-
-		if (!sraAccession) {
-			continue;
-		}
-
-		// Find matching metadata by SRA accession
-		const matchIndex = unmatchedMetadata.findIndex((item) => getSRAFromFileName(item.fileName) === sraAccession);
-
-		if (matchIndex > -1) {
-			// remove the matched metadata from the unmatched list
-			unmatchedMetadata.splice(matchIndex, 1);
-		}
-
-		if (unmatchedMetadata.length === 0) {
-			break;
-		}
-	}
-
-	// Check for any unmatched additional metadata
-	for (const unmatched of unmatchedMetadata) {
-		fileErrors.push({
+	// Collect invalid file name formats
+	const invalidFiles = unmatchedMetadata.filter((file) => !file.identifier);
+	if (invalidFiles.length > 0) {
+		result.errors = invalidFiles.map((file) => ({
 			type: BATCH_ERROR_TYPE.INCORRECT_SECTION,
-			message: `Additional file name '${unmatched.fileName}' does not match any SRA accession`,
+			message: `Invalid sequencing file name '${file.fileName}'`,
 			batchName,
-		});
+		}));
+		return result;
 	}
 
-	return fileErrors.length > 0 ? fileErrors : null;
+	const clinicalIdentifiers = new Set(clinicalData.map((record) => record[filenameIdentifierColumn]).filter(Boolean));
+
+	for (const file of parsedFiles) {
+		const { identifier, ...fileProps } = file;
+		if (identifier && clinicalIdentifiers.has(identifier)) {
+			result.validFiles.push(fileProps);
+		} else {
+			result.errors.push({
+				type: BATCH_ERROR_TYPE.INCORRECT_SECTION,
+				message: `Sequencing file name '${file.fileName}' does not match any '${filenameIdentifierColumn}' value in submission file`,
+				batchName,
+			});
+		}
+	}
+
+	return result;
 };

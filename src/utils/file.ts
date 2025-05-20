@@ -17,15 +17,17 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import { z } from 'zod';
+
 import logger from '@/common/logger.js';
 import { sequencingMetadataSchema } from '@/submission/submitRequest.js';
 
 /**
- * Finds the SRA from a given file name
+ * Finds the identifier from a given file name
  * @param fullFileName The full file name including extension.
  * @returns
  */
-export const getSRAFromFileName = (fullFileName: string): string => {
+export const getIdentifierFromFileName = (fullFileName: string): string => {
 	if (!fullFileName) {
 		return '';
 	}
@@ -35,15 +37,15 @@ export const getSRAFromFileName = (fullFileName: string): string => {
 		return '';
 	}
 
-	const [sra] = baseName.split('-');
-	return sra || '';
+	const [identifier] = baseName.split('-');
+	return identifier || '';
 };
 
 /**
  * Parses and validates sequencing metadata JSON string.
  *
  * @param metadata - The JSON string containing sequencing metadata.
- * @returns The parsed and validated sequencing metadata as `SequencingMetadataType`, or `null` if invalid.
+ * @returns The parsed and validated sequencing metadata as an array of`SequencingMetadataType`, or `null` if invalid.
  */
 export const parseSequencingMetadata = (metadata: string) => {
 	if (!metadata) {
@@ -55,8 +57,8 @@ export const parseSequencingMetadata = (metadata: string) => {
 		// Parse the JSON string
 		const parsed = JSON.parse(metadata);
 
-		// Validate the parsed data against the sequencingMetadataSchema
-		const result = sequencingMetadataSchema.safeParse(parsed);
+		// Validate the parsed data against an array of sequencingMetadataSchema
+		const result = z.array(sequencingMetadataSchema).safeParse(parsed);
 
 		if (result.success) {
 			return result.data;

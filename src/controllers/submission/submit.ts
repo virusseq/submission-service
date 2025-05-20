@@ -41,10 +41,9 @@ export const submit = validateRequest(
 		const user = req.user;
 
 		logger.info(
-			`Upload Submission Request: categoryId '${categoryId}'`,
-			` entityName '${entityName}'`,
-			` submissionFile: '${submissionFile?.originalname}`,
-			` organization '${organization}'`,
+			`Upload Submission Request: 
+			categoryId: '${categoryId}', entityName: '${entityName}', organization: '${organization}', 
+			submissionFile: '${submissionFile?.originalname}', sequencingMetadataValues: '${sequencingMetadataValues?.length}'`,
 		);
 
 		// Authorization check
@@ -76,13 +75,14 @@ export const submit = validateRequest(
 
 		// Validate if sequencing metadata is provided
 		if (sequencingMetadataValues) {
-			const sequencingMetadataErrors = validateSequencingFilesMetadata(
+			const { errors } = validateSequencingFilesMetadata(
 				sequencingMetadataValues,
 				extractedData,
 				submissionFile.originalname,
 			);
-			if (sequencingMetadataErrors) {
-				return respondWithInvalidSubmission(res, undefined, sequencingMetadataErrors);
+			if (errors.length > 0) {
+				console.log(`error validation sequencing file: ${JSON.stringify(errors)}`);
+				return respondWithInvalidSubmission(res, undefined, errors);
 			}
 		}
 
