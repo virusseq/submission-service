@@ -19,9 +19,22 @@
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get the current file's URL
+const __filename = fileURLToPath(import.meta.url);
+
+// Get the directory name of the current file
+const __dirname = path.dirname(__filename);
 
 const TEMPLATE_DIR = path.join(__dirname, '../templates');
 
+/**
+ * Converts a record to a Song Payload using a template.
+ * @param record - The record to convert
+ * @param templateName - The name of the template file
+ * @returns The converted payload
+ */
 export const convertRecordToPayload = (record: Record<string, string>, templateName: string): Record<string, any> => {
 	const templatePath = path.join(TEMPLATE_DIR, templateName);
 	let template = fs.readFileSync(templatePath, 'utf-8');
@@ -35,4 +48,14 @@ export const convertRecordToPayload = (record: Record<string, string>, templateN
 	} catch (err) {
 		throw new Error(`Invalid JSON after template fill: ${err}`);
 	}
+};
+
+/**
+ * Adds a prefix to all keys in an object.
+ * @param obj
+ * @param prefix
+ * @returns
+ */
+export const prefixKeys = (obj: Record<string, any>, prefix: string): Record<string, any> => {
+	return Object.fromEntries(Object.entries(obj).map(([key, value]) => [`${prefix}${key}`, value]));
 };

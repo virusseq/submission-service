@@ -163,7 +163,7 @@ export interface SequencingValidationResult {
  * @param batchName - The name of the main file being processed
  * @returns An array of BatchError objects if there are mismatches, otherwise null
  */
-export const buildSquencingFilesMetadata = (
+export const buildSequencingFilesMetadata = (
 	sequencingFilesMetadata: SequencingMetadataType[],
 	clinicalData: Record<string, string>[],
 	batchName: string,
@@ -212,4 +212,17 @@ export const buildSquencingFilesMetadata = (
 	}
 
 	return result;
+};
+
+/**
+ * Converters the Sequencing metadata to a payload format.
+ */
+export const buildFileMetadata = (file: SequencingMetadataType & { identifier: string }) => {
+	return {
+		fileName: file.fileName,
+		fileSize: file.fileSize,
+		fileMd5sum: file.fileMd5sum,
+		fileAccess: file.fileAccess,
+		fileType: file.fileType,
+	};
 };

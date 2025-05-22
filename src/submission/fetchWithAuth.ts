@@ -31,7 +31,13 @@ async function getAccessToken(): Promise<string> {
 	}
 
 	if (!env.SEQUENCING_SUBMISSION_CLIENT_ID || !env.SEQUENCING_SUBMISSION_CLIENT_SECRET) {
-		throw new Error('CLIENT_ID or CLIENT_SECRET not set in environment variables.');
+		throw new Error(
+			'SEQUENCING_SUBMISSION_CLIENT_ID or SEQUENCING_SUBMISSION_CLIENT_SECRET not set in environment variables.',
+		);
+	}
+
+	if (!env.SEQUENCING_SUBMISSION_TOKEN_URL) {
+		throw new Error('SEQUENCING_SUBMISSION_TOKEN_URL not set in environment variables.');
 	}
 
 	const response = await fetch(env.SEQUENCING_SUBMISSION_TOKEN_URL, {

@@ -40,5 +40,5 @@ volumes:
     name: lectern-mongo-data
     driver: local
   vs_submission_data:
-    name: lectern-mongo-data
+    name: submission-data
     driver: local

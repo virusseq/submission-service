@@ -18,32 +18,62 @@
  */
 
 import { env } from '@/common/envConfig.js';
+import logger from '@/common/logger.js';
 
 import fetchWithAuth from './fetchWithAuth.js';
 
 /**
- * Submits a payload using a POST request with authentication.
- * @param payload
- * @returns The JSON response or throws on error.
+ * Response returned by Song on successful submission.
  */
-export const submit = async (payload: any): Promise<any> => {
-	try {
-		const response = await fetchWithAuth(env.SEQUENCING_SUBMISSION_URL || '', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(payload),
-		});
+type SubmitResponse = {
+	analysisId: string;
+	status: string;
+};
 
-		if (!response.ok) {
-			const errorBody = await response.text();
-			throw new Error(`Request failed: ${response.status} ${response.statusText} - ${errorBody}`);
+const isSubmitSuccessResponse = (data: any): data is SubmitResponse =>
+	typeof data === 'object' && data !== null && typeof data.analysisId === 'string' && typeof data.status === 'string';
+
+/**
+ * Submits a payload using a POST request with authentication.
+ * @param organization - The organization to submit to
+ * @param payload - The payload to submit
+ * @returns The JSON response or throws on error with a message
+ */
+export const submit = async (organization: string, payload: any): Promise<SubmitResponse> => {
+	const apiUrl = new URL(`/submit/${organization}`, env.SEQUENCING_SUBMISSION_URL).toString();
+	logger.info(`Sequencing submission with payload: ${JSON.stringify(payload)}`);
+	const response = await fetchWithAuth(apiUrl, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify(payload),
+	});
+
+	if (!response.ok) {
+		let message = `Sequencing Submission failed with status '${response.status}'`;
+		try {
+			const errorBody = await response.json();
+			const errorDetail = typeof errorBody?.message === 'string' ? errorBody.message : JSON.stringify(errorBody);
+			message += `: ${errorDetail}`;
+		} catch {
+			message += `: Failed to parse error response`;
+		}
+		logger.error(message);
+		throw new Error(message);
+	}
+
+	try {
+		const data = await response.json();
+
+		if (!isSubmitSuccessResponse(data)) {
+			logger.error(`Unexpected response format: ${JSON.stringify(data)}`);
+			throw new Error('Invalid response format');
 		}
 
-		return await response.json();
-	} catch (error) {
-		console.error('Submit error:', error);
-		throw error;
+		return data;
+	} catch {
+		logger.error('Failed to parse successful response as JSON');
+		throw new Error('Invalid JSON in sequencing submission response');
 	}
 };

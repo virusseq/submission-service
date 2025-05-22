@@ -79,7 +79,7 @@ const envSchema = z
 		SEQUENCING_SUBMISSION_CLIENT_SECRET: z.string().optional(),
 		SEQUENCING_SUBMISSION_ENABLED: booleanString.default('false'),
 		SEQUENCING_SUBMISSION_FILENAME_IDENTIFIER_COLUMN: z.string().optional(),
-		SEQUENCING_SUBMISSION_TOKEN_URL: z.string(),
+		SEQUENCING_SUBMISSION_TOKEN_URL: z.string().optional(),
 		SEQUENCING_SUBMISSION_URL: z.string().url().optional(),
 		SERVER_PORT: z.coerce.number().min(100).default(3000),
 		SERVER_UPLOAD_LIMIT: z.string().default('10mb'),
