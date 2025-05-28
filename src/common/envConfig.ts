@@ -75,6 +75,7 @@ const envSchema = z
 		LOG_LEVEL: z.enum(LogLeveOptions).default('info'),
 		NODE_ENV: z.enum(NodeEnvOptions).default('development'),
 		PLURALIZE_SCHEMAS_ENABLED: booleanString.default('true'),
+		SEQUENCING_SUBMISSION_ALLOW_DUPLICATES: booleanString.default('false'),
 		SEQUENCING_SUBMISSION_CLIENT_ID: z.string().optional(),
 		SEQUENCING_SUBMISSION_CLIENT_SECRET: z.string().optional(),
 		SEQUENCING_SUBMISSION_ENABLED: booleanString.default('false'),

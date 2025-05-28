@@ -22,8 +22,8 @@ import { BATCH_ERROR_TYPE, type BatchError, CREATE_SUBMISSION_STATUS, type Schem
 import { env } from '@/common/envConfig.js';
 import logger from '@/common/logger.js';
 import { lyricProvider } from '@/core/provider.js';
-import { submit as songSubmit } from '@/submission/song.js';
-import type { SequencingMetadataType } from '@/submission/submitRequest.js';
+import { getAnalysisFilesByAnalysisId, submit as songSubmit } from '@/submission/song.js';
+import type { SequencingMetadataType, SubmissionManifest } from '@/submission/submitRequest.js';
 
 import { buildFileMetadata, buildSequencingFilesMetadata } from './fileValidation.js';
 import { convertRecordToPayload, prefixKeys } from './populateTemplate.js';
@@ -32,6 +32,7 @@ import { parseFileToRecords } from './readFile.js';
 interface SuccessSubmissionResult {
 	success: true;
 	submissionId: number;
+	submissionManifest?: SubmissionManifest[];
 }
 
 interface ErrorSubmissionResult {
@@ -130,13 +131,15 @@ export async function handleSubmission({
 	}
 
 	// Submit individual song data
-	const songErrors = [];
+	const songErrors: BatchError[] = [];
+	const songAnalysIds: string[] = [];
 	for (const record of songSubmissionData) {
 		try {
 			const result = await songSubmit(organization, record);
 			logger.info(
 				`Song submission result: ${result.status} - ${result.analysisId}, submissionId: ${uploadResult.submissionId}`,
 			);
+			songAnalysIds.push(result.analysisId);
 		} catch (error) {
 			songErrors.push({
 				message: error?.toString() || 'Unknown error',
@@ -155,9 +158,24 @@ export async function handleSubmission({
 			errors: songErrors,
 		};
 	}
+
+	// Include in the response the submission manifest for the successful song analyses
+	const submissionManifest: SubmissionManifest[] = [];
+	for (const analysisId of songAnalysIds) {
+		const result = await getAnalysisFilesByAnalysisId(organization, analysisId);
+		submissionManifest.push(
+			...result.map<SubmissionManifest>((file) => ({
+				objectId: file.objectId,
+				fileName: file.fileName,
+				md5Sum: file.fileMd5sum,
+			})),
+		);
+	}
+
 	// Successful submission!
 	return {
 		success: true,
 		submissionId: uploadResult.submissionId,
+		submissionManifest,
 	};
 }

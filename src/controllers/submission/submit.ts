@@ -27,7 +27,12 @@ import { lyricProvider } from '@/core/provider.js';
 import { validateRequest } from '@/middleware/requestValidation.js';
 import { prevalidateNewDataFile } from '@/submission/fileValidation.js';
 import { handleSubmission } from '@/submission/submissionHandler.js';
-import { type ErrorResponse, submitRequestSchema, type SubmitResponse } from '@/submission/submitRequest.js';
+import {
+	type ErrorResponse,
+	type SubmissionManifest,
+	submitRequestSchema,
+	type SubmitResponse,
+} from '@/submission/submitRequest.js';
 import { parseSequencingMetadata } from '@/utils/file.js';
 
 export const submit = validateRequest(
@@ -86,7 +91,7 @@ export const submit = validateRequest(
 			return respondWithInvalidSubmission(res, result.submissionId, result.errors || []);
 		}
 
-		return responseWithProcessingStatus(res, result.submissionId);
+		return responseWithProcessingStatus(res, result.submissionId, result.submissionManifest);
 	},
 );
 
@@ -133,6 +138,7 @@ const respondWithInvalidSubmission = (
 	return res.status(200).send({
 		submissionId,
 		status: CREATE_SUBMISSION_STATUS.INVALID_SUBMISSION,
+		submissionManifest: [],
 		batchErrors: errors,
 	});
 };
@@ -146,10 +152,12 @@ const respondWithInvalidSubmission = (
 const responseWithProcessingStatus = (
 	res: Response<SubmitResponse>,
 	submissionId: number,
+	submissionManifest?: SubmissionManifest[],
 ): Response<SubmitResponse> => {
 	return res.status(200).send({
 		submissionId,
 		status: CREATE_SUBMISSION_STATUS.PROCESSING,
+		submissionManifest: submissionManifest || [],
 		batchErrors: [],
 	});
 };

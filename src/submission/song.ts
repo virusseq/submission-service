@@ -17,21 +17,27 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import { z } from 'zod';
+
 import { env } from '@/common/envConfig.js';
 import logger from '@/common/logger.js';
+import { fileMetadataSchema } from '@/submission/submitRequest.js';
 
 import fetchWithAuth from './fetchWithAuth.js';
 
 /**
  * Response returned by Song on successful submission.
  */
-type SubmitResponse = {
-	analysisId: string;
-	status: string;
-};
+const SubmitResponseSchema = z.object({
+	analysisId: z.string(),
+	status: z.string(),
+});
 
-const isSubmitSuccessResponse = (data: any): data is SubmitResponse =>
-	typeof data === 'object' && data !== null && typeof data.analysisId === 'string' && typeof data.status === 'string';
+type SubmitResponse = z.infer<typeof SubmitResponseSchema>;
+
+const isSubmitSuccessResponse = (data: unknown): data is SubmitResponse => {
+	return SubmitResponseSchema.safeParse(data).success;
+};
 
 /**
  * Submits a payload using a POST request with authentication.
@@ -40,9 +46,10 @@ const isSubmitSuccessResponse = (data: any): data is SubmitResponse =>
  * @returns The JSON response or throws on error with a message
  */
 export const submit = async (organization: string, payload: any): Promise<SubmitResponse> => {
-	const apiUrl = new URL(`/submit/${organization}`, env.SEQUENCING_SUBMISSION_URL).toString();
+	const apiUrl = new URL(`/submit/${organization}`, env.SEQUENCING_SUBMISSION_URL);
+	apiUrl.searchParams.append('allowDuplicates', String(env.SEQUENCING_SUBMISSION_ALLOW_DUPLICATES));
 	logger.info(`Sequencing submission with payload: ${JSON.stringify(payload)}`);
-	const response = await fetchWithAuth(apiUrl, {
+	const response = await fetchWithAuth(apiUrl.toString(), {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -75,5 +82,60 @@ export const submit = async (organization: string, payload: any): Promise<Submit
 	} catch {
 		logger.error('Failed to parse successful response as JSON');
 		throw new Error('Invalid JSON in sequencing submission response');
+	}
+};
+
+/**
+ * Schema for file metadata used in analysis files.
+ */
+export const AnalysisFilesSchema = fileMetadataSchema.extend({
+	objectId: z.string(),
+	studyId: z.string(),
+	analysisId: z.string(),
+});
+
+export type AnalysisFilesType = z.infer<typeof AnalysisFilesSchema>;
+
+/**
+ * Retrieves the files associated with a specific analysis
+ * @param organization
+ * @param analysisId
+ * @returns
+ */
+export const getAnalysisFilesByAnalysisId = async (
+	organization: string,
+	analysisId: string,
+): Promise<AnalysisFilesType[]> => {
+	logger.info(`Retrieving files for analysisId: ${analysisId}`);
+	const apiUrl = new URL(
+		`/studies/${organization}/analysis/${analysisId}/files`,
+		env.SEQUENCING_SUBMISSION_URL,
+	).toString();
+	const response = await fetchWithAuth(apiUrl, {
+		method: 'GET',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+	});
+
+	if (!response.ok) {
+		let message = `Get files from analysis failed with status '${response.status}'`;
+		try {
+			const errorBody = await response.json();
+			const errorDetail = typeof errorBody?.message === 'string' ? errorBody.message : JSON.stringify(errorBody);
+			message += `: ${errorDetail}`;
+		} catch {
+			message += `: Failed to parse error response`;
+		}
+		logger.error(message);
+		throw new Error(message);
+	}
+
+	try {
+		const jsonResponse = await response.json();
+		return AnalysisFilesSchema.array().parse(jsonResponse);
+	} catch {
+		logger.error('Failed to parse successful response as JSON');
+		throw new Error('Invalid JSON in retriving files for analysis response');
 	}
 };
