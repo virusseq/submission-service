@@ -21,14 +21,21 @@ import { env } from '@/common/envConfig.js';
 import logger from '@/common/logger.js';
 import { app } from '@/server.js';
 
-const { NODE_ENV, SERVER_PORT } = env;
+const { NODE_ENV, SERVER_PORT, INDEXER_ENABLED, AUTH_ENABLED, SEQUENCING_SUBMISSION_ENABLED } = env;
 
 const server = app.listen(SERVER_PORT, () => {
-	logger.info(`Server started. Running in "${NODE_ENV}" mode. Listening to port ${SERVER_PORT}`);
+	logger.info('================ Server Startup ================');
+	logger.info(`🌍 Environment             : ${NODE_ENV}`);
+	logger.info(`📡 Listening on            : http://localhost:${SERVER_PORT}`);
+	logger.info(`🧩 Indexer                 : ${INDEXER_ENABLED ? 'Enabled' : 'Disabled'}`);
+	logger.info(`🔐 Authentication          : ${AUTH_ENABLED ? 'Enabled' : 'Disabled'}`);
+	logger.info(`🧬 Sequencing Submission   : ${SEQUENCING_SUBMISSION_ENABLED ? 'Enabled' : 'Disabled'}`);
 
 	if (NODE_ENV === 'development') {
-		logger.info(`Swagger API Docs are available at http://localhost:${SERVER_PORT}/api-docs`);
+		logger.info(`📖 Swagger Docs            : http://localhost:${SERVER_PORT}/api-docs`);
 	}
+
+	logger.info('===============================================');
 });
 
 const onCloseSignal = () => {

@@ -29,14 +29,14 @@ import type { RequestValidation } from '@/middleware/requestValidation.js';
 interface SubmitRequestPathParams extends ParamsDictionary {
 	categoryId: string;
 }
-export const sequencingMetadataSchema = z.object({
+export const fileMetadataSchema = z.object({
 	fileName: z.string(),
 	fileSize: z.coerce.number(),
 	fileMd5sum: z.string(),
 	fileAccess: z.string(),
 	fileType: z.string(),
 });
-export type SequencingMetadataType = z.infer<typeof sequencingMetadataSchema>;
+export type SequencingMetadataType = z.infer<typeof fileMetadataSchema>;
 
 export const submitRequestSchema: RequestValidation<
 	{ entityName: string; organization: string; sequencingMetadata?: string },
@@ -66,7 +66,7 @@ export const submitRequestSchema: RequestValidation<
 					return;
 				}
 
-				const result = z.array(sequencingMetadataSchema).safeParse(parsed);
+				const result = z.array(fileMetadataSchema).safeParse(parsed);
 				if (!result.success) {
 					logger.error(`zod error: ${result.error}`);
 					if (result.error instanceof ZodError) {
@@ -103,8 +103,15 @@ export type ErrorResponse = {
 	message: string;
 };
 
+export type SubmissionManifest = {
+	objectId: string;
+	fileName: string;
+	md5Sum: string;
+};
+
 export type SubmitResponse = {
 	submissionId?: number;
 	status: 'PROCESSING' | 'INVALID_SUBMISSION';
+	submissionManifest: SubmissionManifest[];
 	batchErrors: BatchError[];
 };

@@ -19,15 +19,20 @@
 
 import { type Response } from 'express';
 
-import { BATCH_ERROR_TYPE, type BatchError, CREATE_SUBMISSION_STATUS } from '@overture-stack/lyric';
+import { type BatchError, CREATE_SUBMISSION_STATUS } from '@overture-stack/lyric';
 
 import { hasUserWriteAccess, shouldBypassAuth } from '@/common/auth.js';
 import logger from '@/common/logger.js';
 import { lyricProvider } from '@/core/provider.js';
 import { validateRequest } from '@/middleware/requestValidation.js';
-import { prevalidateNewDataFile, validateSequencingFilesMetadata } from '@/submission/fileValidation.js';
-import { parseFileToRecords } from '@/submission/readFile.js';
-import { type ErrorResponse, submitRequestSchema, type SubmitResponse } from '@/submission/submitRequest.js';
+import { prevalidateNewDataFile } from '@/submission/fileValidation.js';
+import { handleSubmission } from '@/submission/submissionHandler.js';
+import {
+	type ErrorResponse,
+	type SubmissionManifest,
+	submitRequestSchema,
+	type SubmitResponse,
+} from '@/submission/submitRequest.js';
 import { parseSequencingMetadata } from '@/utils/file.js';
 
 export const submit = validateRequest(
@@ -66,46 +71,27 @@ export const submit = validateRequest(
 
 		const username = user?.username || '';
 
-		const { file: prevalidatedFile, error } = await prevalidateNewDataFile(submissionFile, schema);
+		// Prevalidate Submission file
+		const { error } = await prevalidateNewDataFile(submissionFile, schema);
 		if (error) {
 			return respondWithInvalidSubmission(res, undefined, [error]);
 		}
 
-		const extractedData = await parseFileToRecords(prevalidatedFile, schema);
-
-		// Validate if sequencing metadata is provided
-		if (sequencingMetadataValues) {
-			const { errors } = validateSequencingFilesMetadata(
-				sequencingMetadataValues,
-				extractedData,
-				submissionFile.originalname,
-			);
-			if (errors.length > 0) {
-				console.log(`error validation sequencing file: ${JSON.stringify(errors)}`);
-				return respondWithInvalidSubmission(res, undefined, errors);
-			}
-		}
-
-		// Submit data using Lyric service
-		const uploadResult = await lyricProvider.services.submission.submit({
-			records: extractedData,
+		const result = await handleSubmission({
+			submissionFile,
+			sequencingMetadataValues,
+			organization,
 			entityName,
 			categoryId,
-			organization,
 			username,
+			schema,
 		});
 
-		if (uploadResult.status === CREATE_SUBMISSION_STATUS.PROCESSING && uploadResult.submissionId) {
-			return responseWithProcessingStatus(res, uploadResult.submissionId);
-		} else {
-			return respondWithInvalidSubmission(res, uploadResult.submissionId, [
-				{
-					message: uploadResult.description,
-					type: BATCH_ERROR_TYPE.INCORRECT_SECTION,
-					batchName: submissionFile.originalname,
-				},
-			]);
+		if (!result.success) {
+			return respondWithInvalidSubmission(res, result.submissionId, result.errors || []);
 		}
+
+		return responseWithProcessingStatus(res, result.submissionId, result.submissionManifest);
 	},
 );
 
@@ -152,6 +138,7 @@ const respondWithInvalidSubmission = (
 	return res.status(200).send({
 		submissionId,
 		status: CREATE_SUBMISSION_STATUS.INVALID_SUBMISSION,
+		submissionManifest: [],
 		batchErrors: errors,
 	});
 };
@@ -165,10 +152,12 @@ const respondWithInvalidSubmission = (
 const responseWithProcessingStatus = (
 	res: Response<SubmitResponse>,
 	submissionId: number,
+	submissionManifest?: SubmissionManifest[],
 ): Response<SubmitResponse> => {
 	return res.status(200).send({
 		submissionId,
 		status: CREATE_SUBMISSION_STATUS.PROCESSING,
+		submissionManifest: submissionManifest || [],
 		batchErrors: [],
 	});
 };
