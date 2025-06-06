@@ -20,7 +20,7 @@
 import { z } from 'zod';
 
 import logger from '@/common/logger.js';
-import { sequencingMetadataSchema } from '@/submission/submitRequest.js';
+import { fileMetadataSchema } from '@/submission/submitRequest.js';
 
 /**
  * Finds the identifier from a given file name
@@ -57,8 +57,8 @@ export const parseSequencingMetadata = (metadata: string) => {
 		// Parse the JSON string
 		const parsed = JSON.parse(metadata);
 
-		// Validate the parsed data against an array of sequencingMetadataSchema
-		const result = z.array(sequencingMetadataSchema).safeParse(parsed);
+		// Validate the parsed data against an array of fileMetadataSchema
+		const result = z.array(fileMetadataSchema).safeParse(parsed);
 
 		if (result.success) {
 			return result.data;

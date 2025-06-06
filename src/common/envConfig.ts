@@ -75,7 +75,13 @@ const envSchema = z
 		LOG_LEVEL: z.enum(LogLeveOptions).default('info'),
 		NODE_ENV: z.enum(NodeEnvOptions).default('development'),
 		PLURALIZE_SCHEMAS_ENABLED: booleanString.default('true'),
-		SEQUENCING_FILENAME_IDENTIFIER_COLUMN: z.string().optional(),
+		SEQUENCING_SUBMISSION_ALLOW_DUPLICATES: booleanString.default('false'),
+		SEQUENCING_SUBMISSION_CLIENT_ID: z.string().optional(),
+		SEQUENCING_SUBMISSION_CLIENT_SECRET: z.string().optional(),
+		SEQUENCING_SUBMISSION_ENABLED: booleanString.default('false'),
+		SEQUENCING_SUBMISSION_FILENAME_IDENTIFIER_COLUMN: z.string().optional(),
+		SEQUENCING_SUBMISSION_TOKEN_URL: z.string().optional(),
+		SEQUENCING_SUBMISSION_URL: z.string().url().optional(),
 		SERVER_PORT: z.coerce.number().min(100).default(3000),
 		SERVER_UPLOAD_LIMIT: z.string().default('10mb'),
 	})
@@ -100,6 +106,15 @@ const envSchema = z
 				path: ['INDEXER_SERVER_URL', 'INDEXER_MAPPING'],
 				message:
 					'When INDEXER_ENABLED is true, both INDEXER_SERVER_URL and INDEXER_MAPPING must be provided and cannot be empty.',
+			});
+		}
+
+		if (data.SEQUENCING_SUBMISSION_ENABLED === true && !data.SEQUENCING_SUBMISSION_URL) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ['SEQUENCING_SUBMISSION_URL'],
+				message:
+					'When SEQUENCING_SUBMISSION_ENABLED is true, the SEQUENCING_SUBMISSION_URL must be provided and cannot be empty.',
 			});
 		}
 	});

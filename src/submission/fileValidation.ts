@@ -152,7 +152,7 @@ export const prevalidateEditFile = async (
 
 export interface SequencingValidationResult {
 	errors: BatchError[];
-	validFiles: SequencingMetadataType[];
+	validFiles: (SequencingMetadataType & { identifier: string })[];
 }
 
 /**
@@ -163,7 +163,7 @@ export interface SequencingValidationResult {
  * @param batchName - The name of the main file being processed
  * @returns An array of BatchError objects if there are mismatches, otherwise null
  */
-export const validateSequencingFilesMetadata = (
+export const buildSequencingFilesMetadata = (
 	sequencingFilesMetadata: SequencingMetadataType[],
 	clinicalData: Record<string, string>[],
 	batchName: string,
@@ -173,7 +173,7 @@ export const validateSequencingFilesMetadata = (
 		validFiles: [],
 	};
 
-	const filenameIdentifierColumn = env.SEQUENCING_FILENAME_IDENTIFIER_COLUMN;
+	const filenameIdentifierColumn = env.SEQUENCING_SUBMISSION_FILENAME_IDENTIFIER_COLUMN;
 
 	if (sequencingFilesMetadata.length === 0 || !filenameIdentifierColumn) {
 		return result;
@@ -200,9 +200,8 @@ export const validateSequencingFilesMetadata = (
 	const clinicalIdentifiers = new Set(clinicalData.map((record) => record[filenameIdentifierColumn]).filter(Boolean));
 
 	for (const file of parsedFiles) {
-		const { identifier, ...fileProps } = file;
-		if (identifier && clinicalIdentifiers.has(identifier)) {
-			result.validFiles.push(fileProps);
+		if (file.identifier && clinicalIdentifiers.has(file.identifier)) {
+			result.validFiles.push(file);
 		} else {
 			result.errors.push({
 				type: BATCH_ERROR_TYPE.INCORRECT_SECTION,
@@ -213,4 +212,17 @@ export const validateSequencingFilesMetadata = (
 	}
 
 	return result;
+};
+
+/**
+ * Converters the Sequencing metadata to a payload format.
+ */
+export const buildFileMetadata = (file: SequencingMetadataType & { identifier: string }) => {
+	return {
+		fileName: file.fileName,
+		fileSize: file.fileSize,
+		fileMd5sum: file.fileMd5sum,
+		fileAccess: file.fileAccess,
+		fileType: file.fileType,
+	};
 };
