@@ -1,0 +1,19 @@
+/*
+ * Custom database schema for the submission service.
+ * This schema is used to extend the functionality of the submission service.
+ * 
+ * The schema is defined in the `src/db/schemas/` folder and is used by the Drizzle ORM.
+ * 
+ */
+
+
+/*
+ * The table `record_analysis_map` is created in the `submission` schema.
+ */
+Table submission.record_analysis_map {
+    id serial [primary key]
+    submission_id integer [not null]
+    record_identifier varchar [not null]
+    analysis_id varchar [not null]
+    created_at timestamp [default: `now()`]
+}
