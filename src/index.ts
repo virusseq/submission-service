@@ -19,9 +19,13 @@
 
 import { env } from '@/common/envConfig.js';
 import logger from '@/common/logger.js';
+import { connectionString, connectToDb } from '@/db/index.js';
 import { app } from '@/server.js';
 
 const { NODE_ENV, SERVER_PORT, INDEXER_ENABLED, AUTH_ENABLED, SEQUENCING_SUBMISSION_ENABLED } = env;
+
+// Initialize the connection to the database
+connectToDb(connectionString);
 
 const server = app.listen(SERVER_PORT, () => {
 	logger.info('================ Server Startup ================');

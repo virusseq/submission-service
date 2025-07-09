@@ -17,17 +17,30 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { integer, serial, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { eq } from 'drizzle-orm';
 
-import { schema } from './schema.js';
+import logger from '@/common/logger.js';
+import { lyricProvider } from '@/core/provider.js';
+import type { PostgresDb } from '@/db/index.js';
+import { type SelectSubmissionFile, submissionFiles } from '@/db/schemas/index.js';
 
-export const submissionFiles = schema.table('record_analysis_map', {
-	id: serial().primaryKey(),
-	submission_id: integer().notNull(),
-	record_identifier: varchar({ length: 255 }).notNull(),
-	analysis_id: varchar({ length: 255 }).notNull(),
-	created_at: timestamp().notNull().defaultNow(),
-});
-
-export type SelectSubmissionFile = typeof submissionFiles.$inferSelect;
-export type InsertSubmissionFile = typeof submissionFiles.$inferInsert;
+export const fileRepository = (db: PostgresDb) => {
+	return {
+		/**
+		 * Fetch submission files from the database
+		 * @param submissionId ID of the submission to fetch files for
+		 * @returns Array of file information  associated with the submission
+		 */
+		getSubmissionFilesBySubmissionId: async (submissionId: number): Promise<SelectSubmissionFile[]> => {
+			try {
+				const files = await db.select().from(submissionFiles).where(eq(submissionFiles.submission_id, submissionId));
+				return files;
+			} catch (error) {
+				logger.error('Error querying submission files', error);
+				throw new lyricProvider.utils.errors.InternalServerError(
+					'Something went wrong while fetching files for submission. Please try again later.',
+				);
+			}
+		},
+	};
+};
