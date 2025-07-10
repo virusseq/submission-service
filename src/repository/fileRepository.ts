@@ -22,7 +22,7 @@ import { eq } from 'drizzle-orm';
 import logger from '@/common/logger.js';
 import { lyricProvider } from '@/core/provider.js';
 import type { PostgresDb } from '@/db/index.js';
-import { type SelectSubmissionFile, submissionFiles } from '@/db/schemas/index.js';
+import { type InsertSubmissionFile, type SelectSubmissionFile, submissionFiles } from '@/db/schemas/index.js';
 
 export const fileRepository = (db: PostgresDb) => {
 	return {
@@ -33,12 +33,21 @@ export const fileRepository = (db: PostgresDb) => {
 		 */
 		getSubmissionFilesBySubmissionId: async (submissionId: number): Promise<SelectSubmissionFile[]> => {
 			try {
-				const files = await db.select().from(submissionFiles).where(eq(submissionFiles.submission_id, submissionId));
-				return files;
+				return await db.select().from(submissionFiles).where(eq(submissionFiles.submission_id, submissionId));
 			} catch (error) {
-				logger.error('Error querying submission files', error);
+				logger.error(`Error querying submission files. ${error}`);
 				throw new lyricProvider.utils.errors.InternalServerError(
 					'Something went wrong while fetching files for submission. Please try again later.',
+				);
+			}
+		},
+		saveSubmissionFiles: async (record: InsertSubmissionFile[]) => {
+			try {
+				return await db.insert(submissionFiles).values(record).returning();
+			} catch (error) {
+				logger.error(`Error saving submission files. ${error}`);
+				throw new lyricProvider.utils.errors.InternalServerError(
+					'Something went wrong while saving files for submission. Please try again later.',
 				);
 			}
 		},

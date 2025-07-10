@@ -48,7 +48,7 @@ const isSubmitSuccessResponse = (data: unknown): data is SubmitResponse => {
 export const submit = async (organization: string, payload: any): Promise<SubmitResponse> => {
 	const apiUrl = new URL(`/submit/${organization}`, env.SEQUENCING_SUBMISSION_URL);
 	apiUrl.searchParams.append('allowDuplicates', String(env.SEQUENCING_SUBMISSION_ALLOW_DUPLICATES));
-	logger.info(`Sequencing submission with payload: ${JSON.stringify(payload)}`);
+	logger.debug(`Sequencing submission with payload: ${JSON.stringify(payload)}`);
 	const response = await fetchWithAuth(apiUrl.toString(), {
 		method: 'POST',
 		headers: {
@@ -77,6 +77,7 @@ export const submit = async (organization: string, payload: any): Promise<Submit
 			logger.error(`Unexpected response format: ${JSON.stringify(data)}`);
 			throw new Error('Invalid response format');
 		}
+		logger.debug(`Song submission result: ${data.status} - ${data.analysisId}`);
 
 		return data;
 	} catch {
@@ -106,7 +107,7 @@ export const getAnalysisFilesByAnalysisId = async (
 	organization: string,
 	analysisId: string,
 ): Promise<AnalysisFilesType[]> => {
-	logger.info(`Retrieving files for analysisId: ${analysisId}`);
+	logger.debug(`Retrieving files for analysisId: ${analysisId}`);
 	const apiUrl = new URL(
 		`/studies/${organization}/analysis/${analysisId}/files`,
 		env.SEQUENCING_SUBMISSION_URL,
@@ -133,6 +134,7 @@ export const getAnalysisFilesByAnalysisId = async (
 
 	try {
 		const jsonResponse = await response.json();
+		logger.debug(`Response analysis id '${analysisId}': ${JSON.stringify(jsonResponse)}`);
 		return AnalysisFilesSchema.array().parse(jsonResponse);
 	} catch {
 		logger.error('Failed to parse successful response as JSON');
@@ -161,7 +163,7 @@ export type AnalysisResponse = z.infer<typeof AnalysisBaseResponseSchema>;
  * @returns
  */
 export const getAnalysisById = async (organization: string, analysisId: string): Promise<AnalysisResponse> => {
-	logger.info(`Retrieving analysis for ID '${analysisId}'`);
+	logger.debug(`Retrieving analysis for ID '${analysisId}'`);
 	const apiUrl = new URL(`/studies/${organization}/analysis/${analysisId}`, env.SEQUENCING_SUBMISSION_URL).toString();
 	const response = await fetchWithAuth(apiUrl, {
 		method: 'GET',
@@ -185,6 +187,7 @@ export const getAnalysisById = async (organization: string, analysisId: string):
 
 	try {
 		const jsonResponse = await response.json();
+		logger.debug(`Response analysis id '${analysisId}': ${JSON.stringify(jsonResponse)}`);
 		return AnalysisBaseResponseSchema.parse(jsonResponse);
 	} catch {
 		logger.error('Failed to parse successful response as JSON');

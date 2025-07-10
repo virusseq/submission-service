@@ -17,6 +17,7 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import logger from '@/common/logger.js';
 import type { FileMetadata } from '@/controllers/submission/getSubmissionById.js';
 import { getDbInstance } from '@/db/index.js';
 import { fileRepository } from '@/repository/fileRepository.js';
@@ -32,22 +33,26 @@ export const getSubmissionFiles = async (organization: string, submissionId: num
 	const db = getDbInstance();
 	const { getSubmissionFilesBySubmissionId } = fileRepository(db);
 	const submissionFiles = await getSubmissionFilesBySubmissionId(submissionId);
+	logger.info(`Found '${submissionFiles.length}' files for Submission '${submissionId}'`);
 
 	const fileMetadata: FileMetadata[] = [];
 
 	for (const file of submissionFiles) {
-		const analysis = await getAnalysisById(organization, file.submission_id.toString());
+		const analysis = await getAnalysisById(organization, file.analysis_id);
 
 		const analysisFile = analysis.files[0];
 		if (!analysisFile) {
 			continue;
 		}
 
+		// Assuming a file is considered uploaded if the analysis is published
+		const isFileUploaded = analysis.analysisState === 'PUBLISHED';
+
 		fileMetadata.push({
 			objectId: analysisFile.objectId,
 			fileName: analysisFile.fileName,
 			md5Sum: analysisFile.fileMd5sum,
-			isUploaded: analysis.analysisState === 'PUBLISHED', // Assuming a file is considered uploaded if the analysis is published
+			isUploaded: isFileUploaded,
 		});
 	}
 	return fileMetadata;
