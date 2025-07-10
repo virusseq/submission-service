@@ -19,6 +19,8 @@
 
 import { pgSchema } from 'drizzle-orm/pg-core';
 
+// This constant can be reused across the project to ensure consistency when referring to the schema name.
+// It defines the name of the database schema used for organizing database objects related to submissions
 export const schemaName = 'submission';
 
 export const schema = pgSchema(schemaName);
