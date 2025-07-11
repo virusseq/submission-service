@@ -27,7 +27,7 @@ import { type InsertSubmissionFile, type SelectSubmissionFile, submissionFiles }
 export const fileRepository = (db: PostgresDb) => {
 	return {
 		/**
-		 * Fetch submission files from the database
+		 * Fetch submission files mapping from the database
 		 * @param submissionId ID of the submission to fetch files for
 		 * @returns Array of file information  associated with the submission
 		 */
@@ -41,7 +41,12 @@ export const fileRepository = (db: PostgresDb) => {
 				);
 			}
 		},
-		saveSubmissionFiles: async (record: InsertSubmissionFile[]) => {
+		/**
+		 * Save submission files mapping in to the database
+		 * @param record Submission file mapping values to be inserted in the database
+		 * @returns The resulting object stored
+		 */
+		saveSubmissionFiles: async (record: InsertSubmissionFile[]): Promise<SelectSubmissionFile[]> => {
 			try {
 				return await db.insert(submissionFiles).values(record).returning();
 			} catch (error) {
