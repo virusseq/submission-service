@@ -17,10 +17,9 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import dotenv from 'dotenv';
-import { type Logger, type LoggerOptions, pino } from 'pino';
+import 'dotenv/config';
 
-dotenv.config();
+import { type Logger, type LoggerOptions, pino } from 'pino';
 
 // Singleton logger instance
 let loggerInstance: Logger;
