@@ -28,3 +28,6 @@ export const submissionFiles = schema.table('record_analysis_map', {
 	analysis_id: varchar({ length: 255 }).notNull(),
 	created_at: timestamp().notNull().defaultNow(),
 });
+
+export type SelectSubmissionFile = typeof submissionFiles.$inferSelect;
+export type InsertSubmissionFile = typeof submissionFiles.$inferInsert;

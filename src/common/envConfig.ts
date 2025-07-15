@@ -117,6 +117,15 @@ const envSchema = z
 					'When SEQUENCING_SUBMISSION_ENABLED is true, the SEQUENCING_SUBMISSION_URL must be provided and cannot be empty.',
 			});
 		}
+
+		if (data.SEQUENCING_SUBMISSION_ENABLED === true && !data.SEQUENCING_SUBMISSION_FILENAME_IDENTIFIER_COLUMN) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ['SEQUENCING_SUBMISSION_FILENAME_IDENTIFIER_COLUMN'],
+				message:
+					'When SEQUENCING_SUBMISSION_ENABLED is true, the SEQUENCING_SUBMISSION_FILENAME_IDENTIFIER_COLUMN must be provided and cannot be empty.',
+			});
+		}
 	});
 
 const envParsed = envSchema.safeParse(process.env);

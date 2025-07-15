@@ -17,6 +17,8 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import 'dotenv/config';
+
 import { type Logger, type LoggerOptions, pino } from 'pino';
 
 // Singleton logger instance
