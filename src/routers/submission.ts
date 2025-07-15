@@ -24,6 +24,7 @@ import { errorHandler } from '@overture-stack/lyric';
 
 import { env } from '@/common/envConfig.js';
 import { editData } from '@/controllers/submission/editData.js';
+import { getSubmissionById } from '@/controllers/submission/getSubmissionById.js';
 import { submit } from '@/controllers/submission/submit.js';
 import { lyricProvider } from '@/core/provider.js';
 import { authMiddleware } from '@/middleware/authMiddleware.js';
@@ -35,7 +36,8 @@ const upload = multer({ dest: '/tmp', limits: { fileSize: fileSizeLimit } });
 export const submissionRouter: Router = (() => {
 	const router = express.Router();
 
-	router.post('/category/:categoryId/data', authMiddleware, upload.array('files'), submit);
+	router.get('/:submissionId', authMiddleware, getSubmissionById);
+	router.post('/category/:categoryId/data', authMiddleware, upload.single('submissionFile'), submit);
 	router.put('/category/:categoryId/data', authMiddleware, upload.array('files'), editData);
 
 	router.use('', lyricProvider.routers.submission);

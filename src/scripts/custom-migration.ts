@@ -17,33 +17,33 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { migrate } from 'drizzle-orm/node-postgres/migrator';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-import { type Logger, type LoggerOptions, pino } from 'pino';
+import { env } from '@/common/envConfig.js';
+import logger from '@/common/logger.js';
 
-// Singleton logger instance
-let loggerInstance: Logger;
+import { schemaName } from '../db/schemas/schema.js';
 
-const pinoConfig: LoggerOptions = {
-	level: process.env.LOG_LEVEL || 'info',
-	formatters: {
-		level: (label) => {
-			return { level: label.toUpperCase() };
-		},
-	},
-	timestamp: pino.stdTimeFunctions.isoTime,
-};
+const currentDir = fileURLToPath(new URL('.', import.meta.url));
+const migrationsFolder = path.join(currentDir, '..', '..', 'migrations');
 
-const getLogger = (): Logger => {
-	if (!loggerInstance) {
-		loggerInstance = pino(pinoConfig);
-	}
-	return loggerInstance;
-};
+const { DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT } = env;
 
-/**
- * The singleton logger instance that is initialized once and can be used
- * throughout the application.
- */
-const logger = getLogger();
-export default logger;
+const dbUrl = new URL(`postgres://${DB_HOST}:${DB_PORT}/${DB_NAME}`);
+dbUrl.username = DB_USER;
+dbUrl.password = DB_PASSWORD;
+
+const db = drizzle(dbUrl.toString());
+
+try {
+	await migrate(db, {
+		migrationsFolder,
+		migrationsSchema: `${schemaName}-drizzle`,
+	});
+} catch (error) {
+	logger.error(`Error processing Submission Service migrations. ${error}`);
+	process.exit(1);
+}

@@ -17,33 +17,10 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import 'dotenv/config';
+import { pgSchema } from 'drizzle-orm/pg-core';
 
-import { type Logger, type LoggerOptions, pino } from 'pino';
+// This constant can be reused across the project to ensure consistency when referring to the schema name.
+// It defines the name of the database schema used for organizing database objects related to submissions
+export const schemaName = 'submission';
 
-// Singleton logger instance
-let loggerInstance: Logger;
-
-const pinoConfig: LoggerOptions = {
-	level: process.env.LOG_LEVEL || 'info',
-	formatters: {
-		level: (label) => {
-			return { level: label.toUpperCase() };
-		},
-	},
-	timestamp: pino.stdTimeFunctions.isoTime,
-};
-
-const getLogger = (): Logger => {
-	if (!loggerInstance) {
-		loggerInstance = pino(pinoConfig);
-	}
-	return loggerInstance;
-};
-
-/**
- * The singleton logger instance that is initialized once and can be used
- * throughout the application.
- */
-const logger = getLogger();
-export default logger;
+export const schema = pgSchema(schemaName);

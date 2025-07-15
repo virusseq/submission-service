@@ -17,33 +17,31 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import 'dotenv/config';
+import { defineConfig } from 'drizzle-kit';
 
-import { type Logger, type LoggerOptions, pino } from 'pino';
+import { env } from './src/common/envConfig.js';
+import { schemaName } from './src/db/schemas/schema.js';
 
-// Singleton logger instance
-let loggerInstance: Logger;
+const { DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT } = env;
 
-const pinoConfig: LoggerOptions = {
-	level: process.env.LOG_LEVEL || 'info',
-	formatters: {
-		level: (label) => {
-			return { level: label.toUpperCase() };
-		},
-	},
-	timestamp: pino.stdTimeFunctions.isoTime,
-};
-
-const getLogger = (): Logger => {
-	if (!loggerInstance) {
-		loggerInstance = pino(pinoConfig);
-	}
-	return loggerInstance;
-};
+const dbUrl = new URL(`postgres://${DB_HOST}:${DB_PORT}/${DB_NAME}`);
+dbUrl.username = DB_USER;
+dbUrl.password = DB_PASSWORD;
 
 /**
- * The singleton logger instance that is initialized once and can be used
- * throughout the application.
+ * Drizzle ORM configuration for the Submission Service.
+ * This configuration is used for **development** to generate migration files using Drizzle Kit.
+ * It also connects to the Postgres database to be used with Drizzle Studio
+ * @see https://orm.drizzle.team/docs/get-started/postgresql-new#step-5---setup-drizzle-config-file
  */
-const logger = getLogger();
-export default logger;
+export default defineConfig({
+	out: './migrations',
+	schema: ['./src/db/schemas/index.ts'],
+	dialect: 'postgresql',
+	migrations: {
+		schema: `${schemaName}-drizzle`,
+	},
+	dbCredentials: {
+		url: dbUrl.toString(),
+	},
+});

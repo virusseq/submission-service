@@ -17,33 +17,17 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import 'dotenv/config';
+import { integer, serial, timestamp, varchar } from 'drizzle-orm/pg-core';
 
-import { type Logger, type LoggerOptions, pino } from 'pino';
+import { schema } from './schema.js';
 
-// Singleton logger instance
-let loggerInstance: Logger;
+export const submissionFiles = schema.table('record_analysis_map', {
+	id: serial().primaryKey(),
+	submission_id: integer().notNull(),
+	record_identifier: varchar({ length: 255 }).notNull(),
+	analysis_id: varchar({ length: 255 }).notNull(),
+	created_at: timestamp().notNull().defaultNow(),
+});
 
-const pinoConfig: LoggerOptions = {
-	level: process.env.LOG_LEVEL || 'info',
-	formatters: {
-		level: (label) => {
-			return { level: label.toUpperCase() };
-		},
-	},
-	timestamp: pino.stdTimeFunctions.isoTime,
-};
-
-const getLogger = (): Logger => {
-	if (!loggerInstance) {
-		loggerInstance = pino(pinoConfig);
-	}
-	return loggerInstance;
-};
-
-/**
- * The singleton logger instance that is initialized once and can be used
- * throughout the application.
- */
-const logger = getLogger();
-export default logger;
+export type SelectSubmissionFile = typeof submissionFiles.$inferSelect;
+export type InsertSubmissionFile = typeof submissionFiles.$inferInsert;
