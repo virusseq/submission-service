@@ -19,14 +19,15 @@
 
 import { defineConfig } from 'drizzle-kit';
 
-import { env } from './src/common/envConfig.js';
 import { schemaName } from './src/db/schemas/schema.js';
 
-const { DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT } = env;
+const PG_DATABASE = process.env.DB_NAME;
+const PG_USER = process.env.DB_USER;
+const PG_PASSWORD = process.env.DB_PASSWORD;
+const PG_HOST = process.env.DB_HOST;
+const PG_PORT = process.env.DB_PORT;
 
-const dbUrl = new URL(`postgres://${DB_HOST}:${DB_PORT}/${DB_NAME}`);
-dbUrl.username = DB_USER;
-dbUrl.password = DB_PASSWORD;
+export const connectionString = `postgres://${PG_USER}:${PG_PASSWORD}@${PG_HOST}:${PG_PORT}/${PG_DATABASE}`;
 
 /**
  * Drizzle ORM configuration for the Submission Service.
@@ -42,6 +43,6 @@ export default defineConfig({
 		schema: `${schemaName}-drizzle`,
 	},
 	dbCredentials: {
-		url: dbUrl.toString(),
+		url: connectionString,
 	},
 });
