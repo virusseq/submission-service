@@ -20,7 +20,7 @@
 import { type Response } from 'express';
 import type { ParamsDictionary } from 'express-serve-static-core';
 import type { ParsedQs } from 'qs';
-import { z } from 'zod';
+import { z as zod } from 'zod';
 
 import { type CommitSubmissionResult, SUBMISSION_STATUS } from '@overture-stack/lyric';
 
@@ -36,9 +36,9 @@ interface CommitPathParams extends ParamsDictionary {
 }
 
 export const CommitRequestSchema: RequestValidation<object, ParsedQs, CommitPathParams> = {
-	pathParams: z.object({
-		categoryId: z.string(),
-		submissionId: z.string(),
+	pathParams: zod.object({
+		categoryId: zod.string(),
+		submissionId: zod.string(),
 	}),
 };
 

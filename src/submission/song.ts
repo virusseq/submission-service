@@ -208,6 +208,7 @@ export const publishAnalysis = async (
 	ignoreUndefinedMd5: boolean = false,
 ) => {
 	logger.debug(`Publishing analysis ID '${analysisId}'`);
+
 	const apiUrl = new URL(`/studies/${organization}/analysis/publish/${analysisId}`, env.SEQUENCING_SUBMISSION_URL);
 	apiUrl.searchParams.append('ignoreUndefinedMd5', String(ignoreUndefinedMd5));
 	const response = await fetchWithAuth(apiUrl.toString(), {
