@@ -15,6 +15,13 @@
       "when": 1751654311278,
       "tag": "0001_create_table_record_analysis_map",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1752690000762,
+      "tag": "0002_add_system_id_colum_map_table",
+      "breakpoints": true
     }
   ]
 }
