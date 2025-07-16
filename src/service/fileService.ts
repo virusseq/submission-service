@@ -21,19 +21,29 @@ import logger from '@/common/logger.js';
 import type { FileMetadata } from '@/controllers/submission/getSubmissionById.js';
 import { getDbInstance } from '@/db/index.js';
 import { fileRepository } from '@/repository/fileRepository.js';
-import { getAnalysisById } from '@/submission/song.js';
+import { getAnalysisById, publishAnalysis } from '@/submission/song.js';
 
 /**
- * Retrieves the files associated with a submission.
- * @param organization
+ * Retrieves files linked to a submission via the mapping table
  * @param submissionId
  * @returns
  */
-export const getSubmissionFiles = async (organization: string, submissionId: number) => {
+export const getMappedSubmissionFiles = async (submissionId: number) => {
 	const db = getDbInstance();
 	const { getSubmissionFilesBySubmissionId } = fileRepository(db);
 	const submissionFiles = await getSubmissionFilesBySubmissionId(submissionId);
 	logger.info(`Found '${submissionFiles.length}' files for Submission '${submissionId}'`);
+	return submissionFiles;
+};
+
+/**
+ * Builds file metadata for all files mapped to a submission
+ * @param organization
+ * @param submissionId
+ * @returns
+ */
+export const buildSubmissionFileMetadata = async (organization: string, submissionId: number) => {
+	const submissionFiles = await getMappedSubmissionFiles(submissionId);
 
 	const fileMetadata: FileMetadata[] = [];
 
@@ -56,4 +66,46 @@ export const getSubmissionFiles = async (organization: string, submissionId: num
 		});
 	}
 	return fileMetadata;
+};
+
+/**
+ * Publishes all the files linked to a submission
+ *
+ * This function retrieves all mapped files for the specified submission,
+ * then attempts to publish each one by calling SONG service.
+ * If any publish attempt fails, it records the failure but continues processing the rest.
+ * @param organization
+ * @param submissionId
+ * @returns An object containing:
+ *   - `success`: `true` if all files were published successfully; otherwise `false`.
+ *   - `published`: A list of analysis IDs that were successfully published.
+ *   - `failed`: A list of analysis IDs that failed to publish.
+ */
+export const publishMappedSubmissionFiles = async (organization: string, submissionId: number) => {
+	const mappedFiles = await getMappedSubmissionFiles(submissionId);
+
+	const analysisPublished: string[] = [];
+	const analysisFailed: string[] = [];
+	for (const file of mappedFiles) {
+		try {
+			await publishAnalysis(organization, file.analysis_id);
+			analysisPublished.push(file.analysis_id);
+		} catch {
+			analysisFailed.push(file.analysis_id);
+		}
+	}
+
+	const allSuccessful = mappedFiles.length === analysisPublished.length;
+
+	logger.info(
+		allSuccessful
+			? `Successfully published all ${analysisPublished.length} analyses for submission ID '${submissionId}'`
+			: `Published ${analysisPublished.length}/${mappedFiles.length} analyses for submission ID '${submissionId}'. Failed: '${analysisFailed.join(', ')}'`,
+	);
+
+	return {
+		success: allSuccessful,
+		published: analysisPublished,
+		failed: analysisFailed,
+	};
 };
