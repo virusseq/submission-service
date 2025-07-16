@@ -194,3 +194,45 @@ export const getAnalysisById = async (organization: string, analysisId: string):
 		throw new Error('Invalid JSON in retriving Analysis response');
 	}
 };
+
+/**
+ * Publishes an Analysis in SONG service
+ * @param organization
+ * @param analysisId
+ * @param ignoreUndefinedMd5
+ * @returns a string if analysis is successfully published. Otherwise, throws an error with details
+ */
+export const publishAnalysis = async (
+	organization: string,
+	analysisId: string,
+	ignoreUndefinedMd5: boolean = false,
+) => {
+	logger.debug(`Publishing analysis ID '${analysisId}'`);
+	const apiUrl = new URL(`/studies/${organization}/analysis/publish/${analysisId}`, env.SEQUENCING_SUBMISSION_URL);
+	apiUrl.searchParams.append('ignoreUndefinedMd5', String(ignoreUndefinedMd5));
+	const response = await fetchWithAuth(apiUrl.toString(), {
+		method: 'PUT',
+	});
+
+	if (!response.ok) {
+		let message = `Publish analysis failed with status '${response.status}'`;
+		try {
+			const errorBody = await response.json();
+			const errorDetail = typeof errorBody?.message === 'string' ? errorBody.message : JSON.stringify(errorBody);
+			message += `: ${errorDetail}`;
+		} catch {
+			message += `: Failed to parse error response`;
+		}
+		logger.error(message);
+		throw new Error(message);
+	}
+
+	try {
+		const textResponse = await response.text();
+		logger.debug(`Response analysis id '${analysisId}': ${textResponse}`);
+		return textResponse;
+	} catch {
+		logger.error('Failed to parse successful response as JSON');
+		throw new Error('Invalid JSON in retriving Analysis response');
+	}
+};
