@@ -19,14 +19,9 @@
 
 import { type Response } from 'express';
 import type { ParamsDictionary } from 'express-serve-static-core';
-import { z } from 'zod';
+import { z as zod } from 'zod';
 
-import {
-	convertToViewType,
-	type PaginationMetadata,
-	type SubmittedDataResponse,
-	VIEW_TYPE,
-} from '@overture-stack/lyric';
+import { convertToViewType, VIEW_TYPE } from '@overture-stack/lyric';
 
 import logger from '@/common/logger.js';
 import {
@@ -37,7 +32,11 @@ import {
 } from '@/common/validation.ts/common.js';
 import { lyricProvider } from '@/core/provider.js';
 import { type RequestValidation, validateRequest } from '@/middleware/requestValidation.js';
-import type { SubmissionManifest } from '@/submission/submitRequest.js';
+import {
+	addAnalysisFilesToSubmittedRecord,
+	type SubmittedDataPaginatedWithFilesResponse,
+	type SubmittedDataWithFilesResponse,
+} from '@/submitted-data/submissionFileMapping.js';
 import { asArray } from '@/utils/format.js';
 
 export interface dataQueryParams extends paginationQueryParams {
@@ -51,34 +50,25 @@ interface getDataPathParams extends ParamsDictionary {
 }
 
 const RequestSchema: RequestValidation<object, dataQueryParams, getDataPathParams> = {
-	query: z
+	query: zod
 		.object({
-			entityName: z.union([entityNameSchema, entityNameSchema.array()]).optional(),
+			entityName: zod.union([entityNameSchema, entityNameSchema.array()]).optional(),
 			view: viewSchema.optional(),
 		})
 		.merge(paginationQuerySchema)
 		.superRefine((data, ctx) => {
 			if (data.view === VIEW_TYPE.Values.compound && data.entityName && data.entityName?.length > 0) {
 				ctx.addIssue({
-					code: z.ZodIssueCode.custom,
+					code: zod.ZodIssueCode.custom,
 					message: 'is incompatible with `compound` view',
 					path: ['entityName'],
 				});
 			}
 		}),
-	pathParams: z.object({
-		categoryId: z.string(),
-		organization: z.string(),
+	pathParams: zod.object({
+		categoryId: zod.string(),
+		organization: zod.string(),
 	}),
-};
-
-type SubmittedDataWithFilesResponse = SubmittedDataResponse & {
-	files?: SubmissionManifest[];
-};
-
-type SubmittedDataPaginatedWithFilesResponse = {
-	pagination: PaginationMetadata;
-	records: SubmittedDataWithFilesResponse[];
 };
 
 // Default values for this endpoint
@@ -116,7 +106,10 @@ export const byOrganization = validateRequest(
 				throw new lyricProvider.utils.errors.NotFound(submittedDataResult.metadata.errorMessage);
 			}
 
-			// TODO: include files in this response
+			const recordsWithFiles: SubmittedDataWithFilesResponse[] = await Promise.all(
+				submittedDataResult.result.map((record) => addAnalysisFilesToSubmittedRecord(record)),
+			);
+
 			const response: SubmittedDataPaginatedWithFilesResponse = {
 				pagination: {
 					currentPage: page,
@@ -124,7 +117,7 @@ export const byOrganization = validateRequest(
 					totalPages: Math.ceil(submittedDataResult.metadata.totalRecords / pageSize),
 					totalRecords: submittedDataResult.metadata.totalRecords,
 				},
-				records: submittedDataResult.result,
+				records: recordsWithFiles,
 			};
 
 			return res.status(200).send(response);

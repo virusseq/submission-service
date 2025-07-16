@@ -26,7 +26,7 @@ import { env } from '@/common/envConfig.js';
 import logger from '@/common/logger.js';
 import { getDbInstance } from '@/db/index.js';
 import { fileRepository } from '@/repository/fileRepository.js';
-import { getMappedSubmissionFiles } from '@/service/fileService.js';
+import { fetchSubmissionFilesBySubmissionId } from '@/service/fileService.js';
 
 const findCategoryMapping = (mappings: string | undefined, categoryId: string) => {
 	return mappings
@@ -69,7 +69,7 @@ const updateSubmissionFileSystemIdsIfNeeded = async (submissionId: number, submi
 		return;
 	}
 
-	const existingSubmissionFiles = await getMappedSubmissionFiles(submissionId);
+	const existingSubmissionFiles = await fetchSubmissionFilesBySubmissionId(submissionId);
 	if (!existingSubmissionFiles.length) {
 		logger.debug(`Submission '${submissionId}' does not have any files associated`);
 		return;

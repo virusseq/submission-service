@@ -18,24 +18,24 @@
  */
 
 import type { ParsedQs } from 'qs';
-import { z } from 'zod';
+import { z as zod } from 'zod';
 
 import { VIEW_TYPE } from '@overture-stack/lyric';
 
 import { lyricProvider } from '@/core/provider.js';
 
-export const entityNameSchema = z.string().trim().min(1);
+export const entityNameSchema = zod.string().trim().min(1);
 
 export interface paginationQueryParams extends ParsedQs {
 	page?: string;
 	pageSize?: string;
 }
 
-export const positiveInteger = z.string().superRefine((value, ctx) => {
+export const positiveInteger = zod.string().superRefine((value, ctx) => {
 	const parsed = parseInt(value);
 	if (isNaN(parsed)) {
 		ctx.addIssue({
-			code: z.ZodIssueCode.invalid_type,
+			code: zod.ZodIssueCode.invalid_type,
 			expected: 'number',
 			received: 'nan',
 		});
@@ -43,7 +43,7 @@ export const positiveInteger = z.string().superRefine((value, ctx) => {
 
 	if (parsed < 1) {
 		ctx.addIssue({
-			code: z.ZodIssueCode.too_small,
+			code: zod.ZodIssueCode.too_small,
 			minimum: 1,
 			inclusive: true,
 			type: 'number',
@@ -51,11 +51,11 @@ export const positiveInteger = z.string().superRefine((value, ctx) => {
 	}
 });
 
-export const pageSizeSchema = z.string().superRefine((value, ctx) => {
+export const pageSizeSchema = zod.string().superRefine((value, ctx) => {
 	const parsed = parseInt(value);
 	if (isNaN(parsed)) {
 		ctx.addIssue({
-			code: z.ZodIssueCode.invalid_type,
+			code: zod.ZodIssueCode.invalid_type,
 			expected: 'number',
 			received: 'nan',
 		});
@@ -63,7 +63,7 @@ export const pageSizeSchema = z.string().superRefine((value, ctx) => {
 
 	if (parsed < 1) {
 		ctx.addIssue({
-			code: z.ZodIssueCode.too_small,
+			code: zod.ZodIssueCode.too_small,
 			minimum: 1,
 			inclusive: true,
 			type: 'number',
@@ -71,21 +71,20 @@ export const pageSizeSchema = z.string().superRefine((value, ctx) => {
 	}
 });
 
-export const paginationQuerySchema = z.object({
+export const paginationQuerySchema = zod.object({
 	page: positiveInteger.optional(),
 	pageSize: pageSizeSchema.optional(),
 });
 
 export type SQON = NonNullable<ReturnType<typeof lyricProvider.utils.convertSqonToQuery.parseSQON>>;
 
-export const sqonSchema = z.custom<SQON>((value) => {
+export const sqonSchema = zod.custom<SQON>((value) => {
 	try {
 		lyricProvider.utils.convertSqonToQuery.parseSQON(value);
 		return true;
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	} catch (error) {
+	} catch {
 		return false;
 	}
 }, 'Invalid SQON format!');
 
-export const viewSchema = z.string().toLowerCase().trim().min(1).pipe(VIEW_TYPE);
+export const viewSchema = zod.string().toLowerCase().trim().min(1).pipe(VIEW_TYPE);

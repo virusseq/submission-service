@@ -27,6 +27,24 @@ import { type InsertSubmissionFile, type SelectSubmissionFile, submissionFiles }
 export const fileRepository = (db: PostgresDb) => {
 	return {
 		/**
+		 * Retrieves a submission file by its system ID
+		 * @param systemId The system Id of the submission file
+		 * @returns the matching submission file, or `undefined` if no file is found
+		 */
+		getSubmissionFilesBySystemId: async (systemId: string): Promise<SelectSubmissionFile | undefined> => {
+			try {
+				const result = await db.select().from(submissionFiles).where(eq(submissionFiles.system_id, systemId)).limit(1);
+				// Should be only 1 record by system ID
+				return result[0];
+			} catch (error) {
+				logger.error(`Error querying submission file by system id. ${error}`);
+				throw new lyricProvider.utils.errors.InternalServerError(
+					'Something went wrong while fetching file by system id. Please try again later.',
+				);
+			}
+		},
+
+		/**
 		 * Fetch submission files mapping from the database
 		 * @param submissionId ID of the submission to fetch files for
 		 * @returns Array of file information  associated with the submission

@@ -26,7 +26,7 @@ import type * as schema from './schemas/index.js';
 
 export type PostgresDb = NodePgDatabase<typeof schema>;
 
-const { DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER } = env;
+const { DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER, LOG_LEVEL } = env;
 
 const dbUrl = new URL(`postgres://${DB_HOST}:${DB_PORT}/${DB_NAME}`);
 dbUrl.username = DB_USER;
@@ -60,7 +60,7 @@ export const connectToDb = async (connectionString: string) => {
 		const pool = new Pool({
 			connectionString,
 		});
-		const db = drizzle<typeof schema>({ client: pool });
+		const db = drizzle<typeof schema>({ client: pool, logger: LOG_LEVEL === 'debug' });
 
 		pgDatabase = db;
 	} catch (err) {

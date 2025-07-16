@@ -20,15 +20,18 @@
 import { type Response } from 'express';
 import type { ParamsDictionary } from 'express-serve-static-core';
 import type { ParsedQs } from 'qs';
-import { z } from 'zod';
+import { z as zod } from 'zod';
 
-import { convertToViewType, type SubmittedDataResponse, VIEW_TYPE } from '@overture-stack/lyric';
+import { convertToViewType, VIEW_TYPE } from '@overture-stack/lyric';
 
 import logger from '@/common/logger.js';
 import { viewSchema } from '@/common/validation.ts/common.js';
 import { lyricProvider } from '@/core/provider.js';
 import { type RequestValidation, validateRequest } from '@/middleware/requestValidation.js';
-import type { SubmissionManifest } from '@/submission/submitRequest.js';
+import {
+	addAnalysisFilesToSubmittedRecord,
+	type SubmittedDataWithFilesResponse,
+} from '@/submitted-data/submissionFileMapping.js';
 
 interface getDataPathParams extends ParamsDictionary {
 	categoryId: string;
@@ -40,17 +43,13 @@ interface getDataQueryParams extends ParsedQs {
 }
 
 const RequestSchema: RequestValidation<object, getDataQueryParams, getDataPathParams> = {
-	query: z.object({
+	query: zod.object({
 		view: viewSchema.optional(),
 	}),
-	pathParams: z.object({
-		categoryId: z.string(),
-		systemId: z.string(),
+	pathParams: zod.object({
+		categoryId: zod.string(),
+		systemId: zod.string(),
 	}),
-};
-
-type SubmittedDataWithFilesResponse = SubmittedDataResponse & {
-	files?: SubmissionManifest[];
 };
 
 // Default values for this endpoint
@@ -88,8 +87,7 @@ export const bySystemId = validateRequest(
 				throw new lyricProvider.utils.errors.InternalServerError('Invalid Response');
 			}
 
-			// TODO: include files in this response
-			const responseWithFiles: SubmittedDataWithFilesResponse = { ...submittedDataResult.result };
+			const responseWithFiles = await addAnalysisFilesToSubmittedRecord(submittedDataResult.result);
 
 			return res.status(200).send(responseWithFiles);
 		} catch (error) {
