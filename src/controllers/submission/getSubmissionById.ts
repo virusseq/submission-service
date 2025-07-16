@@ -28,7 +28,7 @@ import { shouldBypassAuth } from '@/common/auth.js';
 import logger from '@/common/logger.js';
 import { lyricProvider } from '@/core/provider.js';
 import { type RequestValidation, validateRequest } from '@/middleware/requestValidation.js';
-import { getSubmissionFiles } from '@/service/fileService.js';
+import { buildSubmissionFileMetadata } from '@/service/fileService.js';
 import type { ErrorResponse } from '@/submission/submitRequest.js';
 
 interface GetSubmissionRequestPathParams extends ParamsDictionary {
@@ -77,7 +77,7 @@ export const getSubmissionById = validateRequest(
 				throw new lyricProvider.utils.errors.NotFound(`Submission with id '${submissionId}' not found`);
 			}
 
-			const files = await getSubmissionFiles(submission.organization, submissionId);
+			const files = await buildSubmissionFileMetadata(submission.organization, submissionId);
 
 			const result: GetSubmissionResponse = {
 				...submission,
