@@ -22,9 +22,11 @@ import { setTimeout } from 'node:timers/promises';
 
 import type { ResultOnCommit, SubmittedDataResponse } from '@overture-stack/lyric';
 
+import { env } from '@/common/envConfig.js';
 import logger from '@/common/logger.js';
-
-import { env } from '../common/envConfig.js';
+import { getDbInstance } from '@/db/index.js';
+import { fileRepository } from '@/repository/fileRepository.js';
+import { getMappedSubmissionFiles } from '@/service/fileService.js';
 
 const findCategoryMapping = (mappings: string | undefined, categoryId: string) => {
 	return mappings
@@ -52,8 +54,65 @@ const indexRecords = async (recordsToIndex: SubmittedDataResponse[], fullUrl: UR
 	}
 };
 
-export const onFinishCommitCallback = (resultOnCommit: ResultOnCommit) => {
-	const { categoryId, organization, data } = resultOnCommit;
+/**
+ * Updates the `system_id` field of submission files associated with a submission in the database,
+ * @param submissionId The ID of the submission
+ * @param submittedData Array of submitted data records with associated system IDs
+ * @returns
+ */
+const updateSubmissionFileSystemIdsIfNeeded = async (submissionId: number, submittedData: SubmittedDataResponse[]) => {
+	// Get files associated to the Submission
+	const identifierColumnName = env.SEQUENCING_SUBMISSION_FILENAME_IDENTIFIER_COLUMN || '';
+	const isSequencingEnabled = env.SEQUENCING_SUBMISSION_ENABLED;
+
+	if (!identifierColumnName || !isSequencingEnabled || !submittedData.length) {
+		return;
+	}
+
+	const existingSubmissionFiles = await getMappedSubmissionFiles(submissionId);
+	if (!existingSubmissionFiles.length) {
+		logger.debug(`Submission '${submissionId}' does not have any files associated`);
+		return;
+	}
+
+	const db = getDbInstance();
+	const fileRepo = fileRepository(db);
+
+	await Promise.all(
+		submittedData.map(async (submittedRecord) => {
+			const submittedRecordIdentifier = submittedRecord.data[identifierColumnName];
+			const matchedSubmissionFile = existingSubmissionFiles.find(
+				(file) => file.record_identifier === submittedRecordIdentifier,
+			);
+			if (matchedSubmissionFile) {
+				await fileRepo.updateSubmissionFiles(matchedSubmissionFile.id, { system_id: submittedRecord.systemId });
+			}
+		}),
+	);
+};
+
+/**
+ * This function is executed automatically when a commit event is completed
+ *
+ * This function performs two main post-processing tasks:
+ *
+ * 1. **Update Submission File System IDs**:
+ *    If sequencing is enabled, it updates the `system_id` of the submission file records associated to
+ *    the submission
+ *
+ * 2. **Trigger Record Indexing**:
+ *    If the indexing feature is enabled, it request to the indexer service to index
+ *    the inserted, updated, and deleted records associated to the submission.
+ * @param resultOnCommit The result payload from the commit event
+ * @returns
+ */
+export const onFinishCommitCallback = async (resultOnCommit: ResultOnCommit) => {
+	const { categoryId, organization, data, submissionId } = resultOnCommit;
+
+	if (data?.inserts) {
+		// records to update the submission files mapping
+		await updateSubmissionFileSystemIdsIfNeeded(submissionId, data?.inserts);
+	}
 
 	// Return if indexer is disabled
 	if (!env.INDEXER_ENABLED || !env.INDEXER_SERVER_URL) {

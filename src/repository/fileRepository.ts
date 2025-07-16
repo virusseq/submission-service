@@ -48,11 +48,29 @@ export const fileRepository = (db: PostgresDb) => {
 		 */
 		saveSubmissionFiles: async (record: InsertSubmissionFile[]): Promise<SelectSubmissionFile[]> => {
 			try {
+				logger.debug(`Inserting Submission file with data: ${JSON.stringify(record)}`);
 				return await db.insert(submissionFiles).values(record).returning();
 			} catch (error) {
 				logger.error(`Error saving submission files. ${error}`);
 				throw new lyricProvider.utils.errors.InternalServerError(
 					'Something went wrong while saving files for submission. Please try again later.',
+				);
+			}
+		},
+		/**
+		 * Updates a submission file in the database by its ID with the provided data.
+		 * @param id The unique identifier of the submission file to be updated
+		 * @param data A partial object containing the fields of `InsertSubmissionFile` to be updated.
+		 * @returns The resulting object stored
+		 */
+		updateSubmissionFiles: async (id: number, data: Partial<Omit<InsertSubmissionFile, 'id'>>) => {
+			try {
+				logger.debug(`Updating submission file id '${id}' with fields: ${JSON.stringify(data)}`);
+				return await db.update(submissionFiles).set(data).where(eq(submissionFiles.id, id)).returning();
+			} catch (error) {
+				logger.error(`Error updating submission file. ${error}`);
+				throw new lyricProvider.utils.errors.InternalServerError(
+					'Something went wrong while updating file for submission. Please try again later.',
 				);
 			}
 		},
