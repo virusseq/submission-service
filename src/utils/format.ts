@@ -17,22 +17,7 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { index, integer, serial, timestamp, varchar } from 'drizzle-orm/pg-core';
-
-import { schema } from './schema.js';
-
-export const submissionFiles = schema.table(
-	'record_analysis_map',
-	{
-		id: serial().primaryKey(),
-		submission_id: integer().notNull(),
-		record_identifier: varchar({ length: 255 }).notNull(),
-		analysis_id: varchar({ length: 255 }).notNull(),
-		system_id: varchar({ length: 255 }),
-		created_at: timestamp().notNull().defaultNow(),
-	},
-	(table) => [index('submission_id_idx').on(table.submission_id), index('system_id_idx').on(table.system_id)],
-);
-
-export type SelectSubmissionFile = typeof submissionFiles.$inferSelect;
-export type InsertSubmissionFile = typeof submissionFiles.$inferInsert;
+export const asArray = <T>(val: T | T[]): T[] => {
+	const result = Array.isArray(val) ? val : [val];
+	return result.filter((item) => item !== null && item !== '' && item !== undefined);
+};

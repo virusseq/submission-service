@@ -17,22 +17,28 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { index, integer, serial, timestamp, varchar } from 'drizzle-orm/pg-core';
+import express, { json, type Router, urlencoded } from 'express';
 
-import { schema } from './schema.js';
+import { errorHandler } from '@overture-stack/lyric';
 
-export const submissionFiles = schema.table(
-	'record_analysis_map',
-	{
-		id: serial().primaryKey(),
-		submission_id: integer().notNull(),
-		record_identifier: varchar({ length: 255 }).notNull(),
-		analysis_id: varchar({ length: 255 }).notNull(),
-		system_id: varchar({ length: 255 }),
-		created_at: timestamp().notNull().defaultNow(),
-	},
-	(table) => [index('submission_id_idx').on(table.submission_id), index('system_id_idx').on(table.system_id)],
-);
+import { byCategory } from '@/controllers/submitted-data/getSubmittedDataByCategory.js';
+import { byOrganization } from '@/controllers/submitted-data/getSubmittedDataByOrganization.js';
+import { byQuery } from '@/controllers/submitted-data/getSubmittedDataByQuery.js';
+import { bySystemId } from '@/controllers/submitted-data/getSubmittedDataBySystemId.js';
+import { authMiddleware } from '@/middleware/authMiddleware.js';
 
-export type SelectSubmissionFile = typeof submissionFiles.$inferSelect;
-export type InsertSubmissionFile = typeof submissionFiles.$inferInsert;
+export const submittedDataRouter: Router = (() => {
+	const router = express.Router();
+
+	router.use(urlencoded({ extended: false }));
+	router.use(json());
+
+	router.get('/category/:categoryId', authMiddleware, byCategory);
+	router.get('/category/:categoryId/id/:systemId', authMiddleware, bySystemId);
+	router.get('/category/:categoryId/organization/:organization', authMiddleware, byOrganization);
+	router.post('/category/:categoryId/organization/:organization/query', authMiddleware, byQuery);
+
+	router.use(errorHandler);
+
+	return router;
+})();

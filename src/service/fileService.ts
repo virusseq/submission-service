@@ -24,11 +24,22 @@ import { fileRepository } from '@/repository/fileRepository.js';
 import { getAnalysisById, publishAnalysis } from '@/submission/song.js';
 
 /**
+ * Retrieves file by system ID via the mapping table
+ * @param id The systemID of the submission file to retrieve
+ * @returns
+ */
+export const fetchSubmissionFilesBySystemId = async (systemId: string) => {
+	const db = getDbInstance();
+	const { getSubmissionFilesBySystemId } = fileRepository(db);
+	return await getSubmissionFilesBySystemId(systemId);
+};
+
+/**
  * Retrieves files linked to a submission via the mapping table
  * @param submissionId
  * @returns
  */
-export const getMappedSubmissionFiles = async (submissionId: number) => {
+export const fetchSubmissionFilesBySubmissionId = async (submissionId: number) => {
 	const db = getDbInstance();
 	const { getSubmissionFilesBySubmissionId } = fileRepository(db);
 	const submissionFiles = await getSubmissionFilesBySubmissionId(submissionId);
@@ -43,7 +54,7 @@ export const getMappedSubmissionFiles = async (submissionId: number) => {
  * @returns
  */
 export const buildSubmissionFileMetadata = async (organization: string, submissionId: number) => {
-	const submissionFiles = await getMappedSubmissionFiles(submissionId);
+	const submissionFiles = await fetchSubmissionFilesBySubmissionId(submissionId);
 
 	const fileMetadata: FileMetadata[] = [];
 
@@ -82,7 +93,7 @@ export const buildSubmissionFileMetadata = async (organization: string, submissi
  *   - `failed`: A list of analysis IDs that failed to publish.
  */
 export const publishMappedSubmissionFiles = async (organization: string, submissionId: number) => {
-	const mappedFiles = await getMappedSubmissionFiles(submissionId);
+	const mappedFiles = await fetchSubmissionFilesBySubmissionId(submissionId);
 
 	const analysisPublished: string[] = [];
 	const analysisFailed: string[] = [];
