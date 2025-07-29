@@ -274,7 +274,9 @@ export async function handleSubmission({
 	);
 
 	if (!songSubmissionResult.success) {
-		// TODO: if Song submission failed. Do a rollback process
+		// When Song submission fails, we have to cancel the current active submission
+		await lyricProvider.services.submission.deleteActiveSubmissionById(lyricSubmitResult.submissionId, username);
+
 		return songSubmissionResult;
 	}
 
