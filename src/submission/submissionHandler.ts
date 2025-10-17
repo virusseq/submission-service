@@ -241,8 +241,7 @@ export async function handleSubmission({
 
 	// Lyric Submission
 	const lyricSubmitResult = await lyricProvider.services.submission.submit({
-		records: extractedData,
-		entityName,
+		data: { [entityName]: extractedData },
 		categoryId,
 		organization,
 		username,

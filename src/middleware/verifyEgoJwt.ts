@@ -141,6 +141,7 @@ export const verifyToken = (req: Request): UserSessionResult => {
 				username: decodedToken?.context?.user?.email || '',
 				isAdmin: hasAdminScope(decodedToken?.context?.scope),
 				allowedWriteOrganizations: findWriteOrganizations(decodedToken?.context?.scope || []),
+				allowedReadOrganizations: [],
 			},
 		};
 	} catch (err) {
