@@ -23,6 +23,7 @@ import { env } from '@/common/envConfig.js';
 import logger from '@/common/logger.js';
 import type { SequencingMetadataType } from '@/submission/submitRequest.js';
 import { getIdentifierFromFileName } from '@/utils/file.js';
+import { asArray } from '@/utils/format.js';
 
 import { getSeparatorCharacter } from './format.js';
 import { readHeaders } from './readFile.js';
@@ -63,12 +64,11 @@ export const prevalidateNewDataFile = async (
 	const firstLine = await readHeaders(file);
 	const fileHeaders = firstLine.split(separatorCharacter).map((str) => str.trim());
 
-	const missingRequiredFields = schema.fields
-		.filter((field) => field.restrictions && 'required' in field.restrictions) // filter required fields
-		.map((field) => field.meta?.displayName?.toString() || field.name) // map displayName if exists
-		.filter((fieldName) => !fileHeaders.includes(fieldName));
+	const missingRequiredFields = findMissingRequiredFields(schema, fileHeaders);
+
 	if (missingRequiredFields.length > 0) {
-		const message = `Missing required fields '${JSON.stringify(missingRequiredFields)}'`;
+		const fieldNames = missingRequiredFields.map((field) => field.name);
+		const message = `Missing required fields '${JSON.stringify(fieldNames)}'`;
 		logger.info(`Prevalidation file '${file.originalname}' failed - ${message}`);
 		return {
 			error: {
@@ -131,12 +131,10 @@ export const prevalidateEditFile = async (
 		};
 	}
 
-	const missingRequiredFields = schema.fields
-		.filter((field) => field.restrictions && 'required' in field.restrictions) // filter required fields
-		.map((field) => field.meta?.displayName?.toString() || field.name) // map displayName if exists
-		.filter((fieldName) => !fileHeaders.includes(fieldName));
+	const missingRequiredFields = findMissingRequiredFields(schema, fileHeaders);
 	if (missingRequiredFields.length > 0) {
-		const message = `Missing required fields '${JSON.stringify(missingRequiredFields)}'`;
+		const fieldNames = missingRequiredFields.map((field) => field.name);
+		const message = `Missing required fields '${JSON.stringify(fieldNames)}'`;
 		logger.info(`Prevalidation file '${file.originalname}' failed - ${message}`);
 		return {
 			error: {
@@ -225,4 +223,23 @@ export const buildFileMetadata = (file: SequencingMetadataType & { identifier: s
 		fileAccess: file.fileAccess,
 		fileType: file.fileType,
 	};
+};
+
+/**
+ * This function checks that every required field in the schema exists in the file headers,
+ * matching whether as field displayName or field name.
+ * Returns the fields that are missing
+ */
+const findMissingRequiredFields = (schema: Schema, fileHeaders: string[]) => {
+	return schema.fields
+		.filter((field) => field.restrictions && 'required' in field.restrictions) // filter required fields
+		.filter((field) => {
+			const possibleNames = asArray([
+				field.meta?.displayName?.toString() || '',
+				field.displayName?.toString() || '',
+				field.name,
+			]);
+
+			return !possibleNames.some((name) => fileHeaders.includes(name));
+		});
 };
