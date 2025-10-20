@@ -56,6 +56,7 @@ const appConfig: AppConfig = {
 	schemaService: {
 		url: env.LECTERN_URL,
 	},
+	validator: [],
 };
 
 export const lyricProvider = provider(appConfig);

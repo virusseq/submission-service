@@ -25,6 +25,7 @@ import { byCategory } from '@/controllers/submitted-data/getSubmittedDataByCateg
 import { byOrganization } from '@/controllers/submitted-data/getSubmittedDataByOrganization.js';
 import { byQuery } from '@/controllers/submitted-data/getSubmittedDataByQuery.js';
 import { bySystemId } from '@/controllers/submitted-data/getSubmittedDataBySystemId.js';
+import { lyricProvider } from '@/core/provider.js';
 import { authMiddleware } from '@/middleware/authMiddleware.js';
 
 export const submittedDataRouter: Router = (() => {
@@ -37,6 +38,8 @@ export const submittedDataRouter: Router = (() => {
 	router.get('/category/:categoryId/id/:systemId', authMiddleware, bySystemId);
 	router.get('/category/:categoryId/organization/:organization', authMiddleware, byOrganization);
 	router.post('/category/:categoryId/organization/:organization/query', authMiddleware, byQuery);
+
+	router.use('', lyricProvider.routers.submittedData);
 
 	router.use(errorHandler);
 

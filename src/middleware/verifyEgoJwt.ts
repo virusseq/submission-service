@@ -141,10 +141,11 @@ export const verifyToken = (req: Request): UserSessionResult => {
 				username: decodedToken?.context?.user?.email || '',
 				isAdmin: hasAdminScope(decodedToken?.context?.scope),
 				allowedWriteOrganizations: findWriteOrganizations(decodedToken?.context?.scope || []),
+				allowedReadOrganizations: [],
 			},
 		};
 	} catch (err) {
-		logger.error(`Error verifying token ${err}`);
+		logger.error(err, 'Error verifying token');
 		return {
 			errorCode: 403,
 			errorMessage: 'Forbidden: Invalid token',

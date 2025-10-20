@@ -26,7 +26,7 @@ services:
       MONGODB_ROOT_PASSWORD: secret_password
   lectern_service:
     container_name: submission.lectern.service
-    image: ghcr.io/overture-stack/lectern:latest
+    image: ghcr.io/overture-stack/lectern:2.0.0-beta.6
     ports:
       - 3000:3000
     environment:

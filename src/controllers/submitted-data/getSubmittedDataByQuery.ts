@@ -93,9 +93,9 @@ export const byQuery = validateRequest(
 			const view = convertToViewType(req.query.view) || defaultView;
 
 			logger.info(
-				`Request Submitted Data on categoryId '${categoryId}' and organization '${organization}'`,
-				`pagination params: page '${page}' pageSize '${pageSize}'`,
-				`view '${view}'`,
+				`Request Submitted Data on categoryId '${categoryId}' and organization '${organization}'` +
+				` pagination params: page '${page}' pageSize '${pageSize}'` +
+				` view '${view}'`,
 			);
 
 			const submittedDataResult = await lyricProvider.services.submittedData.getSubmittedDataByOrganization(

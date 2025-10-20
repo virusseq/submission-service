@@ -162,7 +162,7 @@ const submitSongPayload = async (
 	try {
 		fileRepo.saveSubmissionFiles(insertSubmissionFiles);
 	} catch (error) {
-		logger.error(`An error ocurring storing submission files mapping. ${JSON.stringify(error)}`);
+		logger.error(error, 'An error ocurring storing submission files mapping.');
 		// Lyric submission + Song Submission was successful, but storing submission files mapping failed
 		// Should we cancel the submission?
 		return {
@@ -241,8 +241,7 @@ export async function handleSubmission({
 
 	// Lyric Submission
 	const lyricSubmitResult = await lyricProvider.services.submission.submit({
-		records: extractedData,
-		entityName,
+		data: { [entityName]: extractedData },
 		categoryId,
 		organization,
 		username,

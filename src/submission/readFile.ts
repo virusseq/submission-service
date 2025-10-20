@@ -78,7 +78,7 @@ export const parseFileToRecords = async (
 	let headers: string[] = [];
 
 	const schemaDisplayNames = schema.fields.reduce<Record<string, string>>((acc, field) => {
-		acc[field.meta?.displayName?.toString() || field.name] = field.name;
+		acc[field.meta?.displayName?.toString() || field.displayName?.toString() || field.name] = field.name;
 		return acc;
 	}, {});
 

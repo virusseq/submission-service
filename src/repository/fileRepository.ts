@@ -37,7 +37,7 @@ export const fileRepository = (db: PostgresDb) => {
 				// Should be only 1 record by system ID
 				return result[0];
 			} catch (error) {
-				logger.error(`Error querying submission file by system id. ${error}`);
+				logger.error(error, 'Error querying submission file by system id.');
 				throw new lyricProvider.utils.errors.InternalServerError(
 					'Something went wrong while fetching file by system id. Please try again later.',
 				);
@@ -53,7 +53,7 @@ export const fileRepository = (db: PostgresDb) => {
 			try {
 				return await db.select().from(submissionFiles).where(eq(submissionFiles.submission_id, submissionId));
 			} catch (error) {
-				logger.error(`Error querying submission files. ${error}`);
+				logger.error(error, 'Error querying submission files.');
 				throw new lyricProvider.utils.errors.InternalServerError(
 					'Something went wrong while fetching files for submission. Please try again later.',
 				);
@@ -69,7 +69,7 @@ export const fileRepository = (db: PostgresDb) => {
 				logger.debug(`Inserting Submission file with data: ${JSON.stringify(record)}`);
 				return await db.insert(submissionFiles).values(record).returning();
 			} catch (error) {
-				logger.error(`Error saving submission files. ${error}`);
+				logger.error(error, 'Error saving submission files');
 				throw new lyricProvider.utils.errors.InternalServerError(
 					'Something went wrong while saving files for submission. Please try again later.',
 				);
@@ -86,7 +86,7 @@ export const fileRepository = (db: PostgresDb) => {
 				logger.debug(`Updating submission file id '${id}' with fields: ${JSON.stringify(data)}`);
 				return await db.update(submissionFiles).set(data).where(eq(submissionFiles.id, id)).returning();
 			} catch (error) {
-				logger.error(`Error updating submission file. ${error}`);
+				logger.error(error, 'Error updating submission file.');
 				throw new lyricProvider.utils.errors.InternalServerError(
 					'Something went wrong while updating file for submission. Please try again later.',
 				);

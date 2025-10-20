@@ -58,7 +58,7 @@ export const submitRequestSchema: RequestValidation<
 					}
 					parsed = JSON.parse(str);
 				} catch (e) {
-					logger.error('Invalid JSON format', e);
+					logger.error(e, 'Invalid JSON format');
 					ctx.addIssue({
 						code: z.ZodIssueCode.custom,
 						message: 'Invalid JSON format',
@@ -68,7 +68,7 @@ export const submitRequestSchema: RequestValidation<
 
 				const result = z.array(fileMetadataSchema).safeParse(parsed);
 				if (!result.success) {
-					logger.error(`zod error: ${result.error}`);
+					logger.error(result.error, 'Zod error');
 					if (result.error instanceof ZodError) {
 						const errorMessages = result.error.errors
 							.map((issue) => `${issue.path.join('.')} is ${issue.message}`)
