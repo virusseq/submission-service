@@ -56,8 +56,8 @@ export const editData = validateRequest(editDataRequestSchema, async (req, res) 
 	const user = req.user;
 
 	logger.info(
-		`Edit Data Submission Request: categoryId '${categoryId}'`,
-		` organization '${organization}'`,
+		`Edit Data Submission Request: categoryId '${categoryId}'` +
+		` organization '${organization}'` +
 		` files: '${files?.map((f) => f.originalname)}'`,
 	);
 
@@ -117,7 +117,7 @@ export const editData = validateRequest(editDataRequestSchema, async (req, res) 
 			submissionId = uploadResult.submissionId;
 			entityList.push(entityName);
 		} catch (error) {
-			logger.error(`Error processing file`, error);
+			logger.error(error, `Error processing file: ${file.originalname}`);
 		}
 	}
 

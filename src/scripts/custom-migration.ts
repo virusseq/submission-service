@@ -44,6 +44,6 @@ try {
 		migrationsSchema: `${schemaName}-drizzle`,
 	});
 } catch (error) {
-	logger.error(`Error processing Submission Service migrations. ${error}`);
+	logger.error(error, 'Error processing Submission Service migrations.');
 	process.exit(1);
 }

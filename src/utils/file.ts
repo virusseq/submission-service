@@ -65,11 +65,11 @@ export const parseSequencingMetadata = (metadata: string) => {
 		}
 
 		// Log validation errors if the schema validation fails
-		logger.error(`Sequencing metadata validation failed: ${result.error}`);
+		logger.error(result.error, 'Sequencing metadata validation failed');
 		return null;
 	} catch (error) {
 		// Log parsing errors
-		logger.error('Failed to parse sequencing metadata JSON', error);
+		logger.error(error, 'Failed to parse sequencing metadata JSON.');
 		return null;
 	}
 };

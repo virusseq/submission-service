@@ -65,10 +65,10 @@ export const bySystemId = validateRequest(
 			const view = convertToViewType(String(req.query.view)) || defaultView;
 
 			logger.info(
-				'Request Submitted Data',
-				`categoryId '${categoryId}'`,
-				`systemId '${systemId}'`,
-				`params: view '${view}'`,
+				'Request Submitted Data' +
+				` categoryId '${categoryId}'` +
+				` systemId '${systemId}'` +
+				` params: view '${view}'`,
 			);
 
 			const submittedDataResult = await lyricProvider.services.submittedData.getSubmittedDataBySystemId(

@@ -145,7 +145,7 @@ export const verifyToken = (req: Request): UserSessionResult => {
 			},
 		};
 	} catch (err) {
-		logger.error(`Error verifying token ${err}`);
+		logger.error(err, 'Error verifying token');
 		return {
 			errorCode: 403,
 			errorMessage: 'Forbidden: Invalid token',

@@ -65,9 +65,9 @@ export const connectToDb = async (connectionString: string) => {
 		pgDatabase = db;
 	} catch (err) {
 		if (err instanceof Error) {
-			logger.error('Error on Database startup:', err.message);
+			logger.error('Error on Database startup: ' + err.message);
 		} else {
-			logger.error('Error on Database startup:', String(err));
+			logger.error(err, 'Error on Database startup');
 		}
 		throw err;
 	}
