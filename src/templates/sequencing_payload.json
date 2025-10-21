@@ -1,12 +1,12 @@
 {
     "studyId": "{{organization}}",
     "analysisType": {
-        "name": "waste_water"
+        "name": "imicroseq_wastewater"
     },
     "specimen_collector_sample_id": "{{data.specimen_collector_sample_id}}",
     "sra_accession": "{{data.sra_accession}}",
-    "bioproject_accession": "{{data.bioproject_accession}}",
-    "biosample_accession": "{{data.biosample_accession}}",
+    "insdc_project_accession": "{{data.insdc_project_accession}}",
+    "insdc_sample_accession": "{{data.insdc_sample_accession}}",
     "tar_contents": [
         "TBA"
     ]
