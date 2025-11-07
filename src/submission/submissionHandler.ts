@@ -135,7 +135,7 @@ const submitSongPayload = async (
 			insertSubmissionFiles.push({
 				analysis_id: result.analysisId,
 				submission_id: submissionId,
-				record_identifier: record[fileNameIdentifier],
+				record_identifier: record.files[0].fileName,
 			});
 		} catch (error) {
 			songErrors.push({
