@@ -28,8 +28,9 @@ import { fileMetadataSchema } from '@/submission/submitRequest.js';
  * @returns
  */
 export const getIdentifierFromFileName = (fullFileName: string): string => {
-	// The file identifier keeps the exact same value as it is defined in the .csv file.
-	return fullFileName;
+	// The file identifier is the exact file name without the extensions
+	const firstDotIndex = fullFileName.indexOf('.');
+	return firstDotIndex > 0 ? fullFileName.slice(0, firstDotIndex) : fullFileName;
 };
 
 /**
