@@ -1,6 +1,6 @@
 # Data Submission Service
 
-This service acts as a wrapper around the [@overture-stack/lyric](https://github.com/overture-stack/lyric) package, enabling efficient handling and management of data submissions. It adapts Lyric's functionality to meet VirusSeq's requirements, ensuring reliable data submission and data management
+This service acts as a wrapper around the [@overture-stack/lyric](https://github.com/overture-stack/lyric) package, enabling efficient handling and management of data submissions. It adapts Lyric's functionality to meet iMicroSeq's requirements, ensuring reliable data submission and data management
 
 ## Service Dependencies
 
