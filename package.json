@@ -1,7 +1,7 @@
 {
   "name": "submission-service",
   "version": "0.3.0",
-  "description": "Data Submission for VirusSeq",
+  "description": "Data Submission for iMicroSeq",
   "main": "dist/index.js",
   "scripts": {
     "\n==================  Build  ==================": "",
