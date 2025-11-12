@@ -37,61 +37,65 @@ import { parseSequencingMetadata } from '@/utils/file.js';
 
 export const submit = validateRequest(
 	submitRequestSchema,
-	async (req, res: Response<SubmitResponse | ErrorResponse>) => {
-		const categoryId = Number(req.params.categoryId);
-		const entityName = req.body.entityName;
-		const submissionFile = req.file;
-		const organization = req.body.organization;
-		const sequencingMetadataValues = parseSequencingMetadata(req.body.sequencingMetadata || '');
-		const user = req.user;
+	async (req, res: Response<SubmitResponse | ErrorResponse>, next) => {
+		try {
+			const categoryId = Number(req.params.categoryId);
+			const entityName = req.body.entityName;
+			const submissionFile = req.file;
+			const organization = req.body.organization;
+			const sequencingMetadataValues = parseSequencingMetadata(req.body.sequencingMetadata || '');
+			const user = req.user;
 
-		logger.info(
-			`Upload Submission Request: 
+			logger.info(
+				`Upload Submission Request: 
 			categoryId: '${categoryId}', entityName: '${entityName}', organization: '${organization}', 
 			submissionFile: '${submissionFile?.originalname}', sequencingMetadataValues: '${sequencingMetadataValues?.length}'`,
-		);
-
-		// Authorization check
-		if (!shouldBypassAuth(req.method) && !hasUserWriteAccess(organization, user)) {
-			return res.status(403).json({
-				error: 'Forbidden',
-				message: `User is not authorized to submit data to '${organization}'`,
-			});
-		}
-
-		if (!submissionFile) {
-			throw new lyricProvider.utils.errors.BadRequest(
-				'The "submissionFile" parameter is missing or empty. Please include a file in the request for processing.',
 			);
+
+			// Authorization check
+			if (!shouldBypassAuth(req.method) && !hasUserWriteAccess(organization, user)) {
+				return res.status(403).json({
+					error: 'Forbidden',
+					message: `User is not authorized to submit data to '${organization}'`,
+				});
+			}
+
+			if (!submissionFile) {
+				throw new lyricProvider.utils.errors.BadRequest(
+					'The "submissionFile" parameter is missing or empty. Please include a file in the request for processing.',
+				);
+			}
+
+			// Get the current dictionary and validate entity name
+			const currentDictionary = await getDictionary(categoryId);
+			const schema = validateEntityName(currentDictionary, entityName);
+
+			const username = user?.username || '';
+
+			// Prevalidate Submission file
+			const { error } = await prevalidateNewDataFile(submissionFile, schema);
+			if (error) {
+				return respondWithInvalidSubmission(res, undefined, [error]);
+			}
+
+			const result = await handleSubmission({
+				submissionFile,
+				sequencingMetadataValues,
+				organization,
+				entityName,
+				categoryId,
+				username,
+				schema,
+			});
+
+			if (!result.success) {
+				return respondWithInvalidSubmission(res, result.submissionId, result.errors || []);
+			}
+
+			return responseWithProcessingStatus(res, result.submissionId, result.submissionManifest);
+		} catch (error) {
+			next(error);
 		}
-
-		// Get the current dictionary and validate entity name
-		const currentDictionary = await getDictionary(categoryId);
-		const schema = validateEntityName(currentDictionary, entityName);
-
-		const username = user?.username || '';
-
-		// Prevalidate Submission file
-		const { error } = await prevalidateNewDataFile(submissionFile, schema);
-		if (error) {
-			return respondWithInvalidSubmission(res, undefined, [error]);
-		}
-
-		const result = await handleSubmission({
-			submissionFile,
-			sequencingMetadataValues,
-			organization,
-			entityName,
-			categoryId,
-			username,
-			schema,
-		});
-
-		if (!result.success) {
-			return respondWithInvalidSubmission(res, result.submissionId, result.errors || []);
-		}
-
-		return responseWithProcessingStatus(res, result.submissionId, result.submissionManifest);
 	},
 );
 
