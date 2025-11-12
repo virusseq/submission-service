@@ -4,7 +4,6 @@
         "name": "imicroseq_wastewater"
     },
     "specimen_collector_sample_id": "{{data.specimen_collector_sample_id}}",
-    "sra_accession": "{{data.sra_accession}}",
     "insdc_project_accession": "{{data.insdc_project_accession}}",
     "insdc_sample_accession": "{{data.insdc_sample_accession}}",
     "tar_contents": [
