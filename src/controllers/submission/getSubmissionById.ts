@@ -22,7 +22,7 @@ import type { ParamsDictionary } from 'express-serve-static-core';
 import type { ParsedQs } from 'qs';
 import { z } from 'zod';
 
-import type { SubmissionResponse } from '@overture-stack/lyric';
+import type { SubmissionSummary } from '@overture-stack/lyric';
 
 import { shouldBypassAuth } from '@/common/auth.js';
 import logger from '@/common/logger.js';
@@ -50,7 +50,7 @@ export type FileMetadata = {
 
 export type GetSubmissionResponse = {
 	files: FileMetadata[];
-} & SubmissionResponse;
+} & SubmissionSummary;
 
 /**
  * Handles the request to get a submission by its ID.

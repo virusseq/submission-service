@@ -19,7 +19,7 @@
 
 /submission/{submissionId}:
   get:
-    summary: Get submission by ID
+    summary: Get submission information by ID
     tags:
       - Submission
     parameters:
@@ -29,11 +29,11 @@
         required: true
     responses:
       200:
-        description: Submission details
+        description: Submission information
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SubmissionResult'
+              $ref: '#/components/schemas/SubmissionByIdResult'
       404:
         $ref: '#/components/responses/NotFound'
       500:
@@ -42,7 +42,7 @@
         $ref: '#/components/responses/ServiceUnavailableError'
 
   delete:
-    summary: Clear an Active Submission by ID
+    summary: Close an Active Submission by ID
     tags:
       - Submission
     parameters:
@@ -52,11 +52,11 @@
         required: true
     responses:
       200:
-        description: Submission cleared successfully. Returns the current Active Submission
+        description: Submission closed successfully
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SubmissionResult'
+              $ref: '#/components/schemas/DeleteSubmissionResult'
       400:
         $ref: '#/components/responses/BadRequest'
       401:
@@ -67,6 +67,33 @@
         $ref: '#/components/responses/NotFound'
       409:
         $ref: '#/components/responses/StatusConflict'
+      500:
+        $ref: '#/components/responses/ServerError'
+      503:
+        $ref: '#/components/responses/ServiceUnavailableError'
+
+/submission/{submissionId}/details:
+  get:
+    summary: Get detailed submission information
+    tags:
+      - Submission
+    parameters:
+      - name: submissionId
+        in: path
+        type: string
+        required: true
+    responses:
+      200:
+        description: Full submission payload
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmissionDetailsResult'
+
+      401:
+        $ref: '#/components/responses/UnauthorizedError'
+      404:
+        $ref: '#/components/responses/NotFound'
       500:
         $ref: '#/components/responses/ServerError'
       503:
@@ -107,7 +134,7 @@
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SubmissionResult'
+              $ref: '#/components/schemas/DeleteSubmissionEntityResult'
       400:
         $ref: '#/components/responses/BadRequest'
       401:
@@ -136,11 +163,11 @@
       - $ref: '#/components/parameters/query/OrganizationFilter'
     responses:
       200:
-        description: Submissions details
+        description: List of Submissions
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SubmissionsSummaryResult'
+              $ref: '#/components/schemas/ListSubmissionsResult'
       404:
         $ref: '#/components/responses/NotFound'
       500:
